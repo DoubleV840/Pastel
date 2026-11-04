@@ -9,10 +9,10 @@ import { renderFill, fillSwatch } from './fill.js';
 import { ColorPanel, colorButtonUpdate } from './colorpicker.js';
 import { store } from './store.js';
 import { ICONS } from './icons.js';
-import { busy, sheet, segmented, field, range, check } from './ui.js';
+import { busy, sheet, segmented, field, range, check, animOn, bounce, confetti, applyMotionPref } from './ui.js';
 import {
   $, $$, el, clamp, makeCanvas, freeCanvas, clipRect, canvasToBlob, loadImage, toast, nextFrame,
-  rgbToHex, hexToRgb,
+  rgbToHex, hexToRgb, tileNoise,
 } from './util.js';
 import { t, LANGS, lang, setLang } from './i18n.js';
 
@@ -90,6 +90,7 @@ function groupTap(g) {
   else {
     selectTool(S.groupTool[g.id] || g.tools[0].id);
     closePops();
+    bounce($(`#dock .tool-btn[data-group="${g.id}"]`), 'bounce');
     toast(tool().name, 1200);
   }
 }
@@ -107,6 +108,7 @@ function openPop(which) {
   if (which === 'tool') renderToolPop();
   else colorPanel.open();
   p.hidden = false;
+  bounce(p, 'opening');
   positionPop(p, which);
 }
 
@@ -124,11 +126,11 @@ function positionPop(p, which) {
 }
 
 function renderToolPop() {
-  const t = tool(), g = GROUPS.find((x) => x.id === t.group);
+  const cur = tool(), g = GROUPS.find((x) => x.id === cur.group);
   const list = el('div', { class: 'variants' + (g.id === 'fill' ? ' fills' : '') });
   for (const v of g.tools) {
     const b = el('button', {
-      class: 'variant' + (v.id === t.id ? ' on' : ''),
+      class: 'variant' + (v.id === cur.id ? ' on' : ''), style: `--i:${list.children.length}`,
       onclick: () => { selectTool(v.id); renderToolPop(); },
     });
     if (v.kind === 'fill') {
@@ -180,6 +182,7 @@ function renderPreview(t, c) {
 
 function onColorChange() {
   refreshDock();
+  bounce($('#color-btn'), 'pulse', true);
   if (pop === 'tool') renderToolPop();
 }
 
@@ -340,6 +343,7 @@ function onDown(e) {
 }
 
 function startAction(e) {
+  finishFillAnim();
   const t = tool(), [x, y] = toDoc(e.clientX, e.clientY);
   try { vp.setPointerCapture(e.pointerId); } catch { /* pointeur déjà relâché */ }
   drawId = e.pointerId;
@@ -387,8 +391,11 @@ function onMove(e) {
   }
   lastMove = performance.now();
   if (mode === 'fill' && fillState?.tool.drag) {
-    fillState.end = { x, y };
-    fillState.dirty = true;
+    if (drawTravel > 12) fillState.dragging = true;
+    if (fillState.dragging) {
+      fillState.end = { x, y };
+      fillState.dirty = true;
+    }
   } else if (mode === 'pick') pickAt(x, y);
 }
 
@@ -431,6 +438,7 @@ function startLoop() {
   if (raf) return;
   const loop = (t) => {
     raf = requestAnimationFrame(loop);
+    if (fillAnim) stepFillAnim(t);
     if (mode === 'draw') {
       if (tool().buildup && t - lastMove > 60 && t - lastHold > 40) {
         engine.hold();
@@ -554,32 +562,179 @@ function fillBegin(x, y) {
   }
   if (!m) return;
   mode = 'fill';
-  fillState = { m, start: { x, y }, end: null, tool: tool(), dirty: true };
-  renderFillPreview();
+  fillState = { m, start: { x, y }, end: null, tool: tool(), alpha: toolCfg().opacity, dirty: false, dragging: false };
   startLoop();
 }
 
-function renderFillPreview() {
-  const { m, start, end, tool: t } = fillState;
-  const c = renderFill(t.fill, m, S.color, S.color2, { start, end, unit: Math.max(doc.w, doc.h) / 2048 });
+const fillCanvas = (fs) => renderFill(fs.tool.fill, fs.m, S.color, S.color2, { start: fs.start, end: fs.end, unit: Math.max(doc.w, doc.h) / 2048 });
+
+function drawFillRegion(m, src, alpha) {
   pctx.save();
   clipRect(pctx, m.x, m.y, m.w, m.h);
   pctx.clearRect(m.x, m.y, m.w, m.h);
   pctx.drawImage(doc.backup, m.x, m.y, m.w, m.h, m.x, m.y, m.w, m.h);
-  pctx.globalAlpha = toolCfg(t).opacity;
-  pctx.drawImage(c, m.x, m.y);
+  pctx.globalAlpha = alpha;
+  pctx.drawImage(src, m.x, m.y);
   pctx.restore();
+}
+
+// Dégradé tiré au doigt : aperçu direct à chaque image.
+function renderFillPreview() {
+  const c = fillCanvas(fillState);
+  drawFillRegion(fillState.m, c, fillState.alpha);
   freeCanvas(c);
   fillState.dirty = false;
 }
 
 function fillEnd() {
   stopLoop();
-  if (fillState.dirty) renderFillPreview();
-  const { m } = fillState;
-  commit([m.x, m.y, m.w, m.h]);
+  const fs = fillState, { m } = fs;
+  if (fs.dragging) {
+    if (fs.dirty) renderFillPreview();
+    commit([m.x, m.y, m.w, m.h]);
+  } else {
+    const c = fillCanvas(fs);
+    ripple(lastClient, S.color);
+    if (animOn()) startFillAnim(m, c, fs.start, fs.alpha);
+    else {
+      drawFillRegion(m, c, fs.alpha);
+      freeCanvas(c);
+      commit([m.x, m.y, m.w, m.h]);
+    }
+  }
   addRecent(S.color);
   fillState = null;
+}
+
+/* Remplissage progressif : la couleur coule depuis le point touché en suivant
+   la forme de la zone (distance mesurée à l'intérieur de la zone, calculée en
+   basse résolution), avec un front légèrement ondulé. */
+
+let fillAnim = null, wobble = null;
+
+function geodesic(mask, w, h, seed) {
+  const dist = new Float32Array(w * h).fill(Infinity);
+  const hi = [], hd = [];
+  const push = (i, d) => {
+    let k = hi.length;
+    hi.push(i);
+    hd.push(d);
+    while (k > 0) {
+      const p = (k - 1) >> 1;
+      if (hd[p] <= d) break;
+      hi[k] = hi[p];
+      hd[k] = hd[p];
+      k = p;
+    }
+    hi[k] = i;
+    hd[k] = d;
+  };
+  const pop = () => {
+    const top = hi[0], li = hi.pop(), ld = hd.pop(), n = hi.length;
+    if (n) {
+      let k = 0;
+      for (;;) {
+        let c = 2 * k + 1;
+        if (c >= n) break;
+        if (c + 1 < n && hd[c + 1] < hd[c]) c++;
+        if (hd[c] >= ld) break;
+        hi[k] = hi[c];
+        hd[k] = hd[c];
+        k = c;
+      }
+      hi[k] = li;
+      hd[k] = ld;
+    }
+    return top;
+  };
+  dist[seed] = 0;
+  push(seed, 0);
+  while (hi.length) {
+    const i = pop(), d = dist[i], x = i % w, y = (i / w) | 0;
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        const nx = x + dx, ny = y + dy;
+        if ((!dx && !dy) || nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+        const j = ny * w + nx;
+        if (!mask[j]) continue;
+        const nd = d + (dx && dy ? Math.SQRT2 : 1);
+        if (nd < dist[j]) { dist[j] = nd; push(j, nd); }
+      }
+    }
+  }
+  return dist;
+}
+
+function startFillAnim(m, c, start, alpha) {
+  const f = Math.max(1, Math.ceil(Math.max(m.w, m.h) / 300));
+  const lw = Math.ceil(m.w / f), lh = Math.ceil(m.h / f), low = new Uint8Array(lw * lh);
+  for (let y = 0; y < m.h; y++) {
+    const row = ((y / f) | 0) * lw;
+    for (let x = 0; x < m.w; x++) if (m.data[y * m.w + x]) low[row + ((x / f) | 0)] = 1;
+  }
+  const sx = clamp(Math.floor((start.x - m.x) / f), 0, lw - 1), sy = clamp(Math.floor((start.y - m.y) / f), 0, lh - 1);
+  let seed = sy * lw + sx;
+  if (!low[seed]) {
+    let best = Infinity;
+    for (let i = 0; i < low.length; i++) {
+      if (!low[i]) continue;
+      const d = (i % lw - sx) ** 2 + (((i / lw) | 0) - sy) ** 2;
+      if (d < best) { best = d; seed = i; }
+    }
+  }
+  const dist = geodesic(low, lw, lh, seed);
+  let max = 1;
+  for (let i = 0; i < dist.length; i++) if (low[i] && dist[i] !== Infinity && dist[i] > max) max = dist[i];
+  wobble ||= tileNoise(64, 8, 2, 7);
+  const amp = max * 0.12;
+  for (let i = 0; i < dist.length; i++) {
+    if (!low[i]) continue;
+    if (dist[i] === Infinity) dist[i] = max;
+    dist[i] = Math.max(0, dist[i] + (wobble[(((i / lw) | 0) & 63) * 64 + ((i % lw) & 63)] - 0.5) * amp);
+  }
+  max += amp / 2;
+  fillAnim = {
+    m, c, alpha, dist, max, lw, lh, f,
+    reveal: makeCanvas(lw, lh), tmp: makeCanvas(m.w, m.h), img: new ImageData(lw, lh),
+    soft: Math.max(1.5, max * 0.08), t0: performance.now(), dur: clamp(180 + max * f * 0.3, 260, 850),
+  };
+  startLoop();
+}
+
+function stepFillAnim(now) {
+  const a = fillAnim, k = (now - a.t0) / a.dur;
+  if (k >= 1) { finishFillAnim(); return; }
+  const e = 1 - Math.pow(1 - Math.max(0, k), 3), T = e * (a.max + a.soft), lo = T - a.soft;
+  const px = a.img.data, dist = a.dist;
+  for (let i = 0, j = 3; i < dist.length; i++, j += 4) {
+    const d = dist[i];
+    px[j] = d <= lo ? 255 : d >= T ? 0 : ((T - d) / a.soft) * 255;
+  }
+  a.reveal.getContext('2d').putImageData(a.img, 0, 0);
+  const tc = a.tmp.getContext('2d');
+  tc.globalCompositeOperation = 'copy';
+  tc.drawImage(a.c, 0, 0);
+  tc.globalCompositeOperation = 'destination-in';
+  tc.drawImage(a.reveal, 0, 0, a.lw * a.f, a.lh * a.f);
+  drawFillRegion(a.m, a.tmp, a.alpha);
+}
+
+function finishFillAnim() {
+  const a = fillAnim;
+  if (!a) return;
+  fillAnim = null;
+  drawFillRegion(a.m, a.c, a.alpha);
+  commit([a.m.x, a.m.y, a.m.w, a.m.h]);
+  for (const c of [a.c, a.tmp, a.reveal]) freeCanvas(c);
+  if (!mode) stopLoop();
+}
+
+// Onde de couleur au point touché.
+function ripple(pt, color) {
+  if (!pt || !animOn()) return;
+  const r = el('div', { class: 'ripple', style: `left:${pt.x}px;top:${pt.y}px;--c:${color}` });
+  r.addEventListener('animationend', () => r.remove());
+  document.body.append(r);
 }
 
 function pickAt(x, y) {
@@ -591,6 +746,7 @@ function pickAt(x, y) {
   S.color = col;
   saveSettings();
   refreshDock();
+  bounce($('#color-btn'), 'pulse', true);
   const b = $('#pick-bubble');
   b.style.background = col;
   b.style.transform = `translate(${lastClient ? lastClient.x : innerWidth / 2}px, ${(lastClient ? lastClient.y : innerHeight / 2) - 90}px)`;
@@ -646,12 +802,30 @@ function commit(R) {
   markDirty();
 }
 
+// Calque temporaire de l'état précédent (papier compris) qui s'efface en fondu.
+function fadeOverlay(img, x, y) {
+  const c = makeCanvas(img.width, img.height);
+  c.getContext('2d').putImageData(img, 0, 0);
+  c.className = 'fade-layer';
+  Object.assign(c.style, {
+    left: x + 'px', top: y + 'px', backgroundColor: stage.style.backgroundColor,
+    backgroundImage: stage.style.backgroundImage, backgroundPosition: `${-x}px ${-y}px`,
+  });
+  stage.insertBefore(c, cvLines);
+  requestAnimationFrame(() => requestAnimationFrame(() => c.classList.add('out')));
+  setTimeout(() => { c.remove(); freeCanvas(c); }, 450);
+}
+
 function step(from, to) {
   if (mode && mode !== 'gesture') return;
+  finishFillAnim();
   const r = from.pop();
   if (!r) return;
   const { x, y, data } = r, R = [x, y, data.width, data.height];
-  to.push({ x, y, data: pctx.getImageData(...R) });
+  const cur = pctx.getImageData(...R);
+  to.push({ x, y, data: cur });
+  if (animOn()) fadeOverlay(cur, x, y);
+  bounce($(from === history.undo ? '#ed-undo' : '#ed-redo'), 'nudge');
   pctx.putImageData(data, x, y);
   syncBackup(R);
   refreshUndo();
@@ -662,6 +836,7 @@ const redo = () => step(history.redo, history.undo);
 
 function clearPaint() {
   if (!confirm(t('confirm.clear'))) return;
+  finishFillAnim();
   const R = [0, 0, doc.w, doc.h];
   history.push({ x: 0, y: 0, data: bctx.getImageData(...R) });
   pctx.clearRect(...R);
@@ -676,7 +851,7 @@ let saveTimer = null, changed = false, saving = Promise.resolve();
 function markDirty() {
   changed = true;
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => save(), 2500);
+  saveTimer = setTimeout(() => save({ notify: true }), 2500);
 }
 
 function composite(scale, { lines = true, paper = true } = {}) {
@@ -701,19 +876,21 @@ function composite(scale, { lines = true, paper = true } = {}) {
   return c;
 }
 
-export function save() {
+export function save({ notify = false } = {}) {
+  finishFillAnim();
   saving = saving.then(async () => {
     if (!doc || !changed) return;
     if (mode && mode !== 'gesture') { markDirty(); return; }
     changed = false;
     const rec = doc.rec;
     try {
-      const t = composite(360 / Math.max(doc.w, doc.h));
-      rec.thumb = await canvasToBlob(t, 'image/jpeg', 0.85);
-      freeCanvas(t);
+      const thumb = composite(360 / Math.max(doc.w, doc.h));
+      rec.thumb = await canvasToBlob(thumb, 'image/jpeg', 0.85);
+      freeCanvas(thumb);
       rec.paint = await canvasToBlob(doc.paint);
       rec.updated = Date.now();
       await store.put(rec);
+      if (notify && doc && animOn()) bounce($('#ed-saved'), 'show', false, 1700);
     } catch (err) {
       changed = true;
       toast(t('err.save', { msg: err.message }), 4000);
@@ -772,6 +949,8 @@ function openSettings() {
       segmented(['soft', 'normal', 'firm'].map((v) => [v, t('pressure.' + v)]), S.pressure, (v) => { S.pressure = v; saveSettings(); })),
     field(t('set.smoothing'),
       range({ min: 0, max: 90, step: 5, value: Math.round(S.smoothing * 100), onInput: (v) => { S.smoothing = v / 100; saveSettings(); } })),
+    field(t('set.anim'),
+      check(t('set.anim.on'), S.anim !== false, (v) => { S.anim = v; saveSettings(); applyMotionPref(); })),
     field(t('set.sliders'),
       check(t('set.left'), S.left, (v) => { S.left = v; saveSettings(); refreshSliders(); })),
     field(t('field.paper'), chips(PAPERS, r.paper, (id) => { r.paper = id; applyPaper(); markDirty(); changed = true; }, true)),
@@ -799,10 +978,11 @@ function fileName() {
 }
 
 function openExport() {
+  finishFillAnim();
   let withLines = true, withPaper = true, blob = null, gen = 0, url = null;
   const preview = el('img', { class: 'export-preview', alt: '' });
   const status = el('p', { class: 'hint' }, t('exp.preparing'));
-  const dl = el('a', { class: 'btn', download: fileName() + '.png' }, t('exp.download'));
+  const dl = el('a', { class: 'btn', download: fileName() + '.png', onclick: () => celebrate() }, t('exp.download'));
   const regen = async () => {
     const my = ++gen;
     s.buttons[0].disabled = true;
@@ -832,13 +1012,15 @@ function openExport() {
       onClick: () => {
         if (!blob) return;
         const file = new File([blob], fileName() + '.png', { type: 'image/png' });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) navigator.share({ files: [file], title: doc.rec.name }).catch(() => {});
+        if (navigator.canShare && navigator.canShare({ files: [file] })) navigator.share({ files: [file], title: doc.rec.name }).then(celebrate, () => {});
         else dl.click();
       },
     }],
   });
   regen();
 }
+
+const celebrate = () => confetti([S.color, S.color2, '#ff8fab', '#ffd166', '#06d6a0', '#4cc9f0', '#b388eb']);
 
 /* ---------- Ouverture et fermeture ---------- */
 
@@ -876,6 +1058,7 @@ export async function openArt(rec, { lines } = {}) {
     refreshSliders();
     $('#gallery').hidden = true;
     $('#editor').hidden = false;
+    bounce($('#editor'), 'enter');
     fit();
   } catch (err) {
     toast(t('err.open', { msg: err.message }), 4000);
@@ -887,6 +1070,7 @@ export async function openArt(rec, { lines } = {}) {
 
 async function close() {
   if (mode) cancelAction();
+  finishFillAnim();
   closePops();
   clearTimeout(saveTimer);
   busy(t('busy.saving'));
@@ -900,6 +1084,7 @@ async function close() {
   history.clear();
   $('#editor').hidden = true;
   $('#gallery').hidden = false;
+  bounce($('#gallery'), 'enter');
   onClose();
 }
 
@@ -925,6 +1110,7 @@ export function initEditor({ onClosed }) {
     S.stayInside = !S.stayInside;
     saveSettings();
     refreshToggles();
+    bounce($('#ed-inside'), 'wiggle');
     toast(t(S.stayInside ? 'toast.inside.on' : 'toast.inside.off'), 1600);
   };
   $('#ed-lines').onclick = () => {

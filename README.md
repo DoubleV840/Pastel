@@ -13,6 +13,10 @@ Pensée pour l'Apple Pencil : pression, inclinaison (ombrage au crayon), survol.
   (estompe, doigt, flou), gommes (dure, douce, mie de pain), remplissage et pipette.
 - **Remplissage par toucher** : uni, dégradé (glisser pour la direction),
   dégradé rond, ombré, texture, pois, rayures, carreaux.
+- **Animations** : remplissage qui coule depuis le point touché en suivant la forme
+  de la zone, onde au toucher, annuler en fondu, outils qui rebondissent, aperçus
+  des pinceaux qui se dessinent, badge « Enregistré », confettis à l'export.
+  Désactivables (Réglages) et coupées si « Réduire les animations » est activé sur l'iPad.
 - **Rester dans les traits** : un trait commencé dans une zone n'en sort pas.
 - **Coloriages** générés à l'infini, 10 catégories (mandalas, fleurs, papillons,
   océan, paysages, kaléidoscopes, vitraux, géométrie, motifs, abstrait) : chaque

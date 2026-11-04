@@ -8,6 +8,7 @@ const DEFAULTS = {
   smoothing: 0.3,
   left: false,           // curseurs à droite (gaucher)
   stayInside: true,
+  anim: true,
   penSeen: false,
   tool: 'pencil-color',
   prevTool: 'pencil-color',

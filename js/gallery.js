@@ -16,6 +16,7 @@ let tab = null;
 let mine = [];
 let urls = [];
 const shown = {};
+let riseFrom = 1;
 
 const main = () => $('#g-main');
 
@@ -75,10 +76,10 @@ async function renderMine() {
     return;
   }
   const grid = el('div', { class: 'grid' });
-  for (const rec of mine) {
+  for (const [i, rec] of mine.entries()) {
     const url = rec.thumb ? URL.createObjectURL(rec.thumb) : '';
     if (url) urls.push(url);
-    const card = el('div', { class: 'card' },
+    const card = el('div', { class: 'card', style: `--i:${i}` },
       el('button', { class: 'thumb', style: `aspect-ratio:${rec.w}/${rec.h}`, 'aria-label': rec.name, onclick: () => openArt(rec) },
         url ? el('img', { src: url, alt: '' }) : null),
       el('div', { class: 'meta' },
@@ -153,12 +154,13 @@ function renderPages() {
   const count = shown[kind.id] || 24;
   for (let num = 1; num <= count; num++) {
     const box = el('div', { class: 'page-box', style: `aspect-ratio:${kind.w}/${kind.h}`, 'data-kind': kind.id, 'data-num': num });
-    grid.append(el('button', { class: 'page-card', 'data-key': kind.id + ':' + num, 'aria-label': t('page.title', { kind: kind.name, n: num }), onclick: () => pageTap(kind, num) },
+    grid.append(el('button', { class: 'page-card' + (num < riseFrom ? ' still' : ''), style: `--i:${num - riseFrom}`, 'data-key': kind.id + ':' + num, 'aria-label': t('page.title', { kind: kind.name, n: num }), onclick: () => pageTap(kind, num) },
       box, el('span', { class: 'page-num' }, t('page.num', { n: num })), el('span', { class: 'badge' }, t('page.started'))));
     observer.observe(box);
   }
-  const more = el('button', { class: 'btn more-btn', onclick: () => { shown[kind.id] = count + 24; const y = main().scrollTop; renderPages(); main().scrollTop = y; } }, t('page.more'));
+  const more = el('button', { class: 'btn more-btn', onclick: () => { shown[kind.id] = count + 24; riseFrom = count + 1; const y = main().scrollTop; renderPages(); main().scrollTop = y; } }, t('page.more'));
   main().replaceChildren(chips, grid, more);
+  riseFrom = 1;
   markStarted();
 }
 
@@ -191,7 +193,8 @@ async function createFromPage(kind, num) {
 /* ---------- Créer ---------- */
 
 function renderCreate() {
-  const card = (icon, title, text, onClick) => el('button', { class: 'create-card', onclick: onClick },
+  let n = 0;
+  const card = (icon, title, text, onClick) => el('button', { class: 'create-card', style: `--i:${n++}`, onclick: onClick },
     el('span', { class: 'create-icon', html: ICONS[icon] }), el('b', {}, title), el('span', {}, text));
   main().replaceChildren(el('div', { class: 'create-grid' },
     card('page', t('create.blank'), t('create.blank.text'), blankSheet),

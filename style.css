@@ -681,3 +681,112 @@ svg { display: block; }
   .vslider .track { height: 110px; }
 }
 .form .row-btns { justify-content: flex-start; }
+
+/* ---------- Animations ---------- */
+
+@keyframes rise { from { opacity: 0; translate: 0 14px; scale: 0.97; } }
+@keyframes fadeIn { from { opacity: 0; } }
+@keyframes popIn { from { opacity: 0; scale: 0.92; translate: 0 10px; } }
+@keyframes bounce { 0% { scale: 1; } 30% { scale: 1.22; translate: 0 -5px; } 55% { scale: 0.94; } 75% { scale: 1.05; } 100% { scale: 1; } }
+@keyframes pulse { 0% { scale: 1; } 35% { scale: 1.16; } 100% { scale: 1; } }
+@keyframes ring { from { opacity: 0.8; scale: 0.9; } to { opacity: 0; scale: 1.7; } }
+@keyframes ripple { from { opacity: 0.95; scale: 0.15; } to { opacity: 0; scale: 1.7; } }
+@keyframes nudgeL { 0%, 100% { rotate: 0deg; } 40% { rotate: -28deg; } }
+@keyframes nudgeR { 0%, 100% { rotate: 0deg; } 40% { rotate: 28deg; } }
+@keyframes wiggle { 0%, 100% { rotate: 0deg; } 25% { rotate: -14deg; } 50% { rotate: 10deg; } 75% { rotate: -5deg; } }
+@keyframes drawIn { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes canvasIn { from { opacity: 0; scale: 0.95; } }
+@keyframes slideDown { from { opacity: 0; translate: 0 -26px; } }
+@keyframes slideUp { from { opacity: 0; translate: 0 34px; } }
+@keyframes slideSide { from { opacity: 0; translate: -34px 0; } }
+@keyframes savedPop {
+  0% { opacity: 0; scale: 0.6; }
+  12% { opacity: 1; scale: 1.06; }
+  20% { scale: 1; }
+  78% { opacity: 1; }
+  100% { opacity: 0; translate: 0 -6px; }
+}
+@keyframes float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -8px; } }
+@keyframes bubbleIn { from { scale: 0.3; opacity: 0; } }
+
+.grid > *, .create-grid > * {
+  animation: rise 0.42s cubic-bezier(0.2, 0.8, 0.25, 1) both;
+  animation-delay: calc(min(var(--i, 0), 14) * 30ms);
+}
+.grid > .still { animation: none; }
+.page-canvas { animation: fadeIn 0.35s ease both; }
+.page-card .page-box { transition: transform 0.15s; }
+.empty-art { animation: float 3.2s ease-in-out infinite; }
+
+.popover:not([hidden]) { animation: popIn 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; transform-origin: 50% 100%; }
+#tool-pop.opening .pv, #tool-pop.opening .fill-sw {
+  animation: drawIn 0.55s ease-out both;
+  animation-delay: calc(var(--i, 0) * 70ms + 80ms);
+}
+.tool-btn.bounce svg { animation: bounce 0.5s cubic-bezier(0.3, 0.7, 0.4, 1.3); }
+.color-btn.pulse .c1 { animation: pulse 0.38s ease; }
+.color-btn.pulse::after {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 3px solid var(--tip);
+  box-sizing: border-box;
+  animation: ring 0.5s ease-out both;
+  pointer-events: none;
+}
+#ed-undo.nudge svg { animation: nudgeL 0.4s ease; }
+#ed-redo.nudge svg { animation: nudgeR 0.4s ease; }
+#ed-inside.wiggle svg { animation: wiggle 0.45s ease; }
+#pick-bubble:not([hidden]) { animation: bubbleIn 0.2s cubic-bezier(0.2, 0.9, 0.3, 1.3); }
+
+.ripple {
+  position: fixed;
+  width: 90px;
+  height: 90px;
+  margin: -45px 0 0 -45px;
+  border-radius: 50%;
+  border: 3px solid var(--c);
+  pointer-events: none;
+  z-index: 6;
+  animation: ripple 0.6s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+#stage .fade-layer { transition: opacity 0.32s ease; background-size: 256px 256px; background-blend-mode: multiply; }
+#stage .fade-layer.out { opacity: 0; }
+
+#editor.enter #viewport { animation: canvasIn 0.45s cubic-bezier(0.2, 0.8, 0.25, 1) both; }
+#editor.enter #ed-top { animation: slideDown 0.45s cubic-bezier(0.2, 0.8, 0.25, 1) 0.05s both; }
+#editor.enter #dock { animation: slideUp 0.5s cubic-bezier(0.2, 0.8, 0.25, 1) 0.08s both; }
+#editor.enter #ed-sliders { animation: slideSide 0.5s cubic-bezier(0.2, 0.8, 0.25, 1) 0.12s both; }
+#gallery.enter { animation: fadeIn 0.3s ease both; }
+
+#ed-saved {
+  position: fixed;
+  top: calc(60px + var(--safe-t));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px 5px 9px;
+  border-radius: 999px;
+  background: #2f9e6e;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 3;
+}
+#ed-saved svg { width: 16px; height: 16px; }
+#ed-saved.show { animation: savedPop 1.6s ease both; }
+
+.confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
+
+.no-anim *, .no-anim *::before, .no-anim *::after { animation: none !important; transition: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
