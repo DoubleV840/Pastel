@@ -35,5 +35,11 @@ export const ICONS = {
   copy: svg('<rect x="8.5" y="8.5" width="11" height="11" rx="2"/><path d="M15.5 8.5V6a1.5 1.5 0 0 0-1.5-1.5H6A1.5 1.5 0 0 0 4.5 6v8A1.5 1.5 0 0 0 6 15.5h2.5"/>'),
   edit: svg('<path d="M15.5 4.5l4 4L9 19H5v-4z"/>'),
   globe: svg('<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/>'),
+  pin: svg('<path d="M9 3.5h6l-1 5.5 3.5 3v1.5h-11V12l3.5-3z"/><path d="M12 13.5v7"/>'),
+  layout: svg('<rect x="3.5" y="6" width="17" height="5" rx="1.5"/><rect x="3.5" y="13.5" width="7.5" height="5" rx="1.5"/><rect x="13" y="13.5" width="7.5" height="5" rx="1.5"/>'),
+  grip: svg('<g fill="currentColor" stroke="none"><circle cx="9" cy="7" r="1.4"/><circle cx="15" cy="7" r="1.4"/><circle cx="9" cy="12" r="1.4"/><circle cx="15" cy="12" r="1.4"/><circle cx="9" cy="17" r="1.4"/><circle cx="15" cy="17" r="1.4"/></g>'),
+  chevron: svg('<path d="M7 10l5 5 5-5"/>'),
+  sound: svg('<path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z"/><path d="M15.5 9a4 4 0 0 1 0 6"/><path d="M18 6.5a7.5 7.5 0 0 1 0 11"/>'),
+  mute: svg('<path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/>'),
   restart: svg('<path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4.5v4h4"/>'),
 };

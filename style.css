@@ -790,3 +790,59 @@ svg { display: block; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ---------- Palette flottante ---------- */
+
+.float-pal {
+  position: fixed;
+  z-index: 3;
+  padding: 4px 8px 10px;
+  border-radius: 18px;
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+  backdrop-filter: blur(18px) saturate(1.5);
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  touch-action: none;
+  cursor: grab;
+  max-width: calc(100vw - 12px);
+}
+.float-pal.dragging { cursor: grabbing; box-shadow: 0 16px 40px rgba(70, 45, 25, 0.22); scale: 1.03; }
+.float-pal.fp-in { animation: popIn 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
+.fp-head { display: flex; align-items: center; gap: 2px; margin-bottom: 6px; min-width: 0; }
+.fp-grip { width: 22px; height: 30px; display: grid; place-items: center; color: var(--muted); flex: none; }
+.fp-grip svg { width: 18px; height: 18px; }
+.fp-name {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.fp-name span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fp-name i { width: 16px; height: 16px; flex: none; color: var(--muted); }
+.fp-name:active { background: rgba(0, 0, 0, 0.06); }
+.fp-head .icon-btn.sm { width: 30px; height: 30px; color: var(--muted); }
+.fp-head .icon-btn.sm svg { width: 18px; height: 18px; }
+.fp-swatches { display: grid; grid-template-columns: repeat(var(--cols, 4), 38px); gap: 7px; justify-content: center; }
+.fp-swatches .sw { width: 38px; height: 38px; transition: scale 0.12s; }
+.fp-swatches .sw.on { box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12), 0 0 0 2px #fff, 0 0 0 4px var(--ink); }
+.fp-swatches .hint { grid-column: 1 / -1; font-size: 13px; margin: 2px 4px 0; max-width: 170px; }
+
+.cp-label.row { display: flex; align-items: center; justify-content: space-between; gap: 6px; align-self: stretch; }
+.pin-btn {
+  width: 30px;
+  height: 26px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  flex: none;
+}
+.pin-btn svg { width: 17px; height: 17px; }
+.pin-btn:active { background: rgba(0, 0, 0, 0.07); }
+#ed-sound.muted { color: var(--muted); }

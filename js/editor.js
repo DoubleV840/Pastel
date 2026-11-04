@@ -15,6 +15,10 @@ import {
   rgbToHex, hexToRgb, tileNoise,
 } from './util.js';
 import { t, LANGS, lang, setLang } from './i18n.js';
+import { FloatPalette } from './floatpal.js';
+import {
+  unlockAudio, setVolume, startStroke, updateStroke, endStroke, playFill, playPick, playTick, playSwish, playSparkle,
+} from './sound.js';
 
 const vp = $('#viewport'), stage = $('#stage'), cvPaint = $('#cv-paint'), cvLines = $('#cv-lines');
 const engine = new Engine(), pvEngine = new Engine();
@@ -23,7 +27,7 @@ const UNDO_BYTES = 180e6, UNDO_STEPS = 60;
 
 let doc = null, pctx = null, bctx = null;
 let onClose = () => {};
-let colorPanel;
+let colorPanel, floatPal;
 
 /* ---------- Outils et réglages ---------- */
 
@@ -83,6 +87,7 @@ function refreshDock() {
 }
 
 function groupTap(g) {
+  playTick();
   if (g.id === 'picker') {
     selectTool('picker');
     closePops();
@@ -182,6 +187,7 @@ function renderPreview(t, c) {
 
 function onColorChange() {
   refreshDock();
+  floatPal.render();
   bounce($('#color-btn'), 'pulse', true);
   if (pop === 'tool') renderToolPop();
 }
@@ -289,6 +295,7 @@ let mode = null;            // draw | fill | pick | gesture
 let drawId = null, drawType = null, drawStart = 0, drawTravel = 0, lastClient = null;
 let gesture = null, longPress = null, lastMove = 0, lastHold = 0, raf = 0;
 let fillState = null;
+let voice = null, sndT = 0, sndDist = 0, sndP = 0.5;
 
 const fingerDraws = () => S.finger === 'draw' || (S.finger === 'auto' && !S.penSeen);
 
@@ -344,6 +351,7 @@ function onDown(e) {
 
 function startAction(e) {
   finishFillAnim();
+  unlockAudio();
   const t = tool(), [x, y] = toDoc(e.clientX, e.clientY);
   try { vp.setPointerCapture(e.pointerId); } catch { /* pointeur déjà relâché */ }
   drawId = e.pointerId;
@@ -353,6 +361,7 @@ function startAction(e) {
   lastClient = { x: e.clientX, y: e.clientY };
   if (t.kind === 'picker') {
     mode = 'pick';
+    playPick();
     pickAt(x, y);
     return;
   }
@@ -363,8 +372,12 @@ function startAction(e) {
   mode = 'draw';
   const c = toolCfg(t);
   const mask = S.stayInside && doc.regions ? maskAt(x, y) : null;
-  engine.begin(t, { size: c.size, opacity: c.opacity, color: S.color, smoothing: S.smoothing }, ptFrom(e, x, y), mask);
-  lastMove = performance.now();
+  const pt = ptFrom(e, x, y);
+  engine.begin(t, { size: c.size, opacity: c.opacity, color: S.color, smoothing: S.smoothing }, pt, mask);
+  lastMove = sndT = performance.now();
+  sndDist = 0;
+  sndP = pt.p;
+  voice = startStroke(t);
   startLoop();
 }
 
@@ -385,9 +398,15 @@ function onMove(e) {
   let x = 0, y = 0;
   for (const ev of evs.length ? evs : [e]) {
     [x, y] = toDoc(ev.clientX, ev.clientY);
-    drawTravel += Math.hypot(ev.clientX - lastClient.x, ev.clientY - lastClient.y);
+    const moved = Math.hypot(ev.clientX - lastClient.x, ev.clientY - lastClient.y);
+    drawTravel += moved;
+    sndDist += moved;
     lastClient = { x: ev.clientX, y: ev.clientY };
-    if (mode === 'draw') engine.addPoint(ptFrom(ev, x, y));
+    if (mode === 'draw') {
+      const pt = ptFrom(ev, x, y);
+      sndP = pt.p;
+      engine.addPoint(pt);
+    }
   }
   lastMove = performance.now();
   if (mode === 'fill' && fillState?.tool.drag) {
@@ -414,8 +433,11 @@ function onUp(e) {
 function finishAction() {
   if (mode === 'draw') {
     stopLoop();
+    endStroke(voice);
+    voice = null;
     commit(engine.end());
     addRecent(S.color);
+    floatPal.render();
   } else if (mode === 'fill') fillEnd();
   else if (mode === 'pick') pickEnd();
   mode = null;
@@ -423,6 +445,8 @@ function finishAction() {
 }
 
 function cancelAction() {
+  endStroke(voice);
+  voice = null;
   if (mode === 'draw') engine.cancel();
   else if (mode === 'fill' && fillState) {
     const { m } = fillState;
@@ -445,6 +469,12 @@ function startLoop() {
         lastHold = t;
       }
       engine.flush();
+      if (voice) {
+        const dt = Math.max(0.001, (t - sndT) / 1000);
+        updateStroke(voice, sndDist / dt, sndP, dt);
+        sndDist = 0;
+        sndT = t;
+      }
     } else if (mode === 'fill' && fillState?.dirty) renderFillPreview();
   };
   raf = requestAnimationFrame(loop);
@@ -481,6 +511,7 @@ function startGesture(e) {
       drawId = id;
       drawType = 'touch';
       lastClient = { x: p.x, y: p.y };
+      playPick();
       pickAt(x, y);
     }, 480);
   }
@@ -592,6 +623,7 @@ function fillEnd() {
   if (fs.dragging) {
     if (fs.dirty) renderFillPreview();
     commit([m.x, m.y, m.w, m.h]);
+    playFill(250);
   } else {
     const c = fillCanvas(fs);
     ripple(lastClient, S.color);
@@ -601,8 +633,10 @@ function fillEnd() {
       freeCanvas(c);
       commit([m.x, m.y, m.w, m.h]);
     }
+    playFill(fillAnim ? fillAnim.dur : 250);
   }
   addRecent(S.color);
+  floatPal.render();
   fillState = null;
 }
 
@@ -756,6 +790,7 @@ function pickAt(x, y) {
 function pickEnd(cancelled) {
   $('#pick-bubble').hidden = true;
   if (!cancelled) addRecent(S.color);
+  floatPal.render();
   if (tool().kind === 'picker') selectTool(TOOLS[S.prevTool] && S.prevTool !== 'picker' ? S.prevTool : 'pencil-color');
 }
 
@@ -826,6 +861,7 @@ function step(from, to) {
   to.push({ x, y, data: cur });
   if (animOn()) fadeOverlay(cur, x, y);
   bounce($(from === history.undo ? '#ed-undo' : '#ed-redo'), 'nudge');
+  playSwish(from === history.undo ? -1 : 1);
   pctx.putImageData(data, x, y);
   syncBackup(R);
   refreshUndo();
@@ -949,6 +985,10 @@ function openSettings() {
       segmented(['soft', 'normal', 'firm'].map((v) => [v, t('pressure.' + v)]), S.pressure, (v) => { S.pressure = v; saveSettings(); })),
     field(t('set.smoothing'),
       range({ min: 0, max: 90, step: 5, value: Math.round(S.smoothing * 100), onInput: (v) => { S.smoothing = v / 100; saveSettings(); } })),
+    field(t('set.sound'),
+      check(t('set.sound.on'), S.sound !== false, (v) => { S.sound = v; saveSettings(); setVolume(); refreshSoundBtn(); }),
+      range({ min: 0, max: 100, step: 5, value: Math.round((S.volume ?? 0.6) * 100), onInput: (v) => { S.volume = v / 100; saveSettings(); setVolume(); } }),
+      el('p', { class: 'hint' }, t('set.sound.hint'))),
     field(t('set.anim'),
       check(t('set.anim.on'), S.anim !== false, (v) => { S.anim = v; saveSettings(); applyMotionPref(); })),
     field(t('set.sliders'),
@@ -1020,7 +1060,10 @@ function openExport() {
   regen();
 }
 
-const celebrate = () => confetti([S.color, S.color2, '#ff8fab', '#ffd166', '#06d6a0', '#4cc9f0', '#b388eb']);
+const celebrate = () => {
+  confetti([S.color, S.color2, '#ff8fab', '#ffd166', '#06d6a0', '#4cc9f0', '#b388eb']);
+  playSparkle();
+};
 
 /* ---------- Ouverture et fermeture ---------- */
 
@@ -1060,6 +1103,8 @@ export async function openArt(rec, { lines } = {}) {
     $('#editor').hidden = false;
     bounce($('#editor'), 'enter');
     fit();
+    floatPal.restore();
+    refreshSoundBtn();
   } catch (err) {
     toast(t('err.open', { msg: err.message }), 4000);
     doc = null;
@@ -1092,12 +1137,20 @@ export function initEditor({ onClosed }) {
   onClose = onClosed;
   buildDock();
   initSliders();
-  colorPanel = new ColorPanel($('#color-pop'), onColorChange);
+  colorPanel = new ColorPanel($('#color-pop'), onColorChange, (id) => { closePops(); floatPal.show(id); });
+  floatPal = new FloatPalette($('#float-pal'), onColorChange);
   $('#ed-back').innerHTML = ICONS.back;
   $('#ed-undo').innerHTML = ICONS.undo;
   $('#ed-redo').innerHTML = ICONS.redo;
   $('#ed-share').innerHTML = ICONS.share;
   $('#ed-settings').innerHTML = ICONS.settings;
+  $('#ed-sound').onclick = () => {
+    S.sound = S.sound === false;
+    saveSettings();
+    setVolume();
+    refreshSoundBtn();
+    toast(t(S.sound ? 'toast.sound.on' : 'toast.sound.off'), 1400);
+  };
   $('#ed-inside').insertAdjacentHTML('afterbegin', ICONS.inside);
   $('#ed-lines').insertAdjacentHTML('afterbegin', ICONS.eye);
   $('#ed-back').onclick = close;
@@ -1123,6 +1176,8 @@ export function initEditor({ onClosed }) {
     buildDock();
     refreshDock();
     colorPanel.build();
+    floatPal.build();
+    floatPal.render();
   });
 
   vp.addEventListener('pointerdown', onDown);
@@ -1152,6 +1207,12 @@ export function initEditor({ onClosed }) {
   });
   document.addEventListener('visibilitychange', () => { if (document.hidden && doc) save(); });
   addEventListener('pagehide', () => { if (doc) save(); });
+}
+
+function refreshSoundBtn() {
+  const b = $('#ed-sound');
+  b.innerHTML = S.sound === false ? ICONS.mute : ICONS.sound;
+  b.classList.toggle('muted', S.sound === false);
 }
 
 export const editorOpen = () => !!doc;

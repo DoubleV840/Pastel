@@ -24,9 +24,10 @@ export const PALETTES = [
 ];
 
 export class ColorPanel {
-  constructor(root, onChange) {
+  constructor(root, onChange, onPin) {
     this.root = root;
     this.onChange = onChange;
+    this.onPin = onPin;
     this.target = 'color';
     this.tab = 'wheel';
     this.build();
@@ -72,7 +73,7 @@ export class ColorPanel {
     this.wheelPane = el('div', { class: 'cp-pane' }, this.wheel, el('p', { class: 'cp-label' }, t('cp.harmonies')), this.harm);
     this.palPane = el('div', { class: 'cp-pane cp-pal' });
     this.recent = el('div', { class: 'swatches' });
-    this.root.append(head, this.tabs, this.wheelPane, this.palPane, el('p', { class: 'cp-label' }, t('cp.recent')), this.recent);
+    this.root.append(head, this.tabs, this.wheelPane, this.palPane, this.label(t('cp.recent'), 'recent'), this.recent);
     this.bindWheel();
   }
 
@@ -96,6 +97,12 @@ export class ColorPanel {
     this.refresh();
   }
 
+  // Titre de palette avec bouton « détacher en petite fenêtre ».
+  label(text, id, extra = null) {
+    return el('div', { class: 'cp-label row' }, el('span', {}, text, extra),
+      el('button', { class: 'pin-btn', 'aria-label': t('fp.pin'), html: ICONS.pin, onclick: () => this.onPin(id) }));
+  }
+
   swatch(hex, extra = {}) {
     return el('button', { class: 'sw', style: `--c:${hex}`, 'aria-label': hex, onclick: () => this.set(hex), ...extra });
   }
@@ -104,27 +111,29 @@ export class ColorPanel {
     const mine = el('div', { class: 'swatches' });
     for (const c of S.custom) {
       const b = this.swatch(c);
-      let t;
+      let timer;
       b.addEventListener('pointerdown', () => {
-        t = setTimeout(() => {
+        timer = setTimeout(() => {
           if (confirm(t('cp.remove'))) {
             S.custom = S.custom.filter((x) => x !== c);
             saveSettings();
             this.renderPalettes();
+            this.onChange();
           }
         }, 650);
       });
-      for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) b.addEventListener(ev, () => clearTimeout(t));
+      for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) b.addEventListener(ev, () => clearTimeout(timer));
       mine.append(b);
     }
     mine.append(el('button', { class: 'sw add', 'aria-label': t('cp.add'), html: ICONS.plus, onclick: () => {
       if (!S.custom.includes(this.value)) S.custom = [...S.custom, this.value].slice(-24);
       saveSettings();
       this.renderPalettes();
+      this.onChange();
     } }));
     this.palPane.replaceChildren(
-      el('p', { class: 'cp-label' }, t('cp.mine') + ' ', el('span', { class: 'hint' }, t('cp.mine.hint'))), mine,
-      ...PALETTES.flatMap(([name, cols]) => [el('p', { class: 'cp-label' }, t('pal.' + name)), el('div', { class: 'swatches' }, cols.map((c) => this.swatch(c)))]),
+      this.label(t('cp.mine') + ' ', 'custom', el('span', { class: 'hint' }, t('cp.mine.hint'))), mine,
+      ...PALETTES.flatMap(([name, cols]) => [this.label(t('pal.' + name), name), el('div', { class: 'swatches' }, cols.map((c) => this.swatch(c)))]),
     );
   }
 

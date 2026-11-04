@@ -9,6 +9,9 @@ const DEFAULTS = {
   left: false,           // curseurs à droite (gaucher)
   stayInside: true,
   anim: true,
+  sound: true,
+  volume: 0.6,
+  floatPal: { id: null, open: false, x: null, y: null, wide: false },
   penSeen: false,
   tool: 'pencil-color',
   prevTool: 'pencil-color',

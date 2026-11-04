@@ -17,6 +17,13 @@ Pensée pour l'Apple Pencil : pression, inclinaison (ombrage au crayon), survol.
   de la zone, onde au toucher, annuler en fondu, outils qui rebondissent, aperçus
   des pinceaux qui se dessinent, badge « Enregistré », confettis à l'export.
   Désactivables (Réglages) et coupées si « Réduire les animations » est activé sur l'iPad.
+- **Palette flottante** : l'épingle à côté d'une palette (panneau Couleurs → Palettes,
+  « Mes couleurs » ou « Récentes ») la détache en petite fenêtre qu'on déplace où
+  l'on veut ; palette, disposition et position sont mémorisées.
+- **Sons** synthétisés selon l'outil (grattement du crayon, glisse du feutre,
+  pinceau mouillé, gouttes d'aquarelle, souffle de l'aérographe, clochettes des
+  paillettes, frottement de la gomme, peinture versée au remplissage). Volume et
+  coupure dans Réglages ou bouton haut-parleur ; respecte le mode silencieux.
 - **Rester dans les traits** : un trait commencé dans une zone n'en sort pas.
 - **Coloriages** générés à l'infini, 10 catégories (mandalas, fleurs, papillons,
   océan, paysages, kaléidoscopes, vitraux, géométrie, motifs, abstrait) : chaque
@@ -68,6 +75,7 @@ Changer `CACHE` dans `sw.js` seulement si la liste des fichiers change.
 - `js/regions.js`, `js/fill.js` : zones fermées, remplissages.
 - `js/pages.js` : générateurs de coloriages. `js/lineart.js` : image/photo → traits.
 - `js/editor.js` : écran de dessin (saisie, gestes, historique, export).
-- `js/i18n.js` : traductions (fr, en, es-419).
+- `js/i18n.js` : traductions (fr, en, es-419). `js/sound.js` : sons (Web Audio).
+- `js/floatpal.js` : palette flottante.
 - `js/gallery.js` : accueil. `js/colorpicker.js` : couleurs. `js/store.js` : IndexedDB.
 - `sw.js`, `manifest.webmanifest`, `icons/` : installation en appli.
