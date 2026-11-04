@@ -7,6 +7,7 @@ import { ICONS } from './icons.js';
 import { t } from './i18n.js';
 import { menu, bounce } from './ui.js';
 import { el, clamp } from './util.js';
+import { ToneSlider, toneOf } from './tone.js';
 
 const fp = () => (S.floatPal ||= { id: null, open: false, x: null, y: null, wide: false });
 
@@ -43,7 +44,8 @@ export class FloatPalette {
       } }),
       el('button', { class: 'icon-btn sm', 'aria-label': t('btn.close'), html: ICONS.close, onclick: () => this.hide() }));
     this.grid = el('div', { class: 'fp-swatches' });
-    this.root.replaceChildren(this.head, this.grid);
+    this.tone = new ToneSlider('color', () => this.onPick());
+    this.root.replaceChildren(this.head, this.grid, this.tone.el);
     this.bindDrag();
   }
 
@@ -73,11 +75,12 @@ export class FloatPalette {
     if (this.root.hidden) return;
     this.name.innerHTML = '';
     this.name.append(el('span', {}, this.title()), el('i', { html: ICONS.chevron }));
-    const cols = this.colors();
+    const cols = this.colors(), base = toneOf('color').base;
+    this.tone.update();
     this.grid.style.setProperty('--cols', fp().wide ? Math.min(8, Math.max(1, cols.length)) : Math.min(4, Math.max(1, cols.length)));
     this.grid.replaceChildren(...(cols.length
       ? cols.map((c) => el('button', {
-        class: 'sw' + (c === S.color ? ' on' : ''), style: `--c:${c}`, 'aria-label': c,
+        class: 'sw' + (c === base ? ' on' : ''), style: `--c:${c}`, 'aria-label': c,
         onclick: () => {
           S.color = c;
           saveSettings();
@@ -106,7 +109,7 @@ export class FloatPalette {
   bindDrag() {
     let start = null;
     this.root.addEventListener('pointerdown', (e) => {
-      if (e.target.closest('button')) return;
+      if (e.target.closest('button, .tone')) return;
       e.preventDefault();
       const r = this.root.getBoundingClientRect();
       start = { px: e.clientX, py: e.clientY, x: r.left, y: r.top };

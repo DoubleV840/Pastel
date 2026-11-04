@@ -846,3 +846,49 @@ svg { display: block; }
 .pin-btn svg { width: 17px; height: 17px; }
 .pin-btn:active { background: rgba(0, 0, 0, 0.07); }
 #ed-sound.muted { color: var(--muted); }
+
+/* ---------- Nuance ---------- */
+
+.cp-tone { display: flex; flex-direction: column; gap: 8px; margin: 0 0 12px; }
+.tone-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--muted); }
+.tone-row b { color: var(--ink); }
+.tone { width: 100%; }
+.tone-track {
+  position: relative;
+  height: 28px;
+  margin: 0 14px;
+  border-radius: 14px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+  touch-action: none;
+  cursor: ew-resize;
+}
+.tone-mid {
+  position: absolute;
+  left: 50%;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.25);
+}
+.tone-thumb {
+  position: absolute;
+  top: 50%;
+  width: 32px;
+  height: 32px;
+  margin: -16px 0 0 -16px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  background: var(--c);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
+  transition: scale 0.12s;
+}
+.tone-track.active .tone-thumb { scale: 1.15; }
+.tone-chips { display: flex; justify-content: space-between; gap: 4px; }
+.tone-chips .sw { width: 28px; height: 28px; }
+.tone-chips .sw.on { box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12), 0 0 0 2px #fff, 0 0 0 4px var(--ink); }
+.float-pal .tone { margin-top: 10px; }
+.float-pal .tone-track { height: 24px; margin: 0 12px; }
+.float-pal .tone-thumb { width: 28px; height: 28px; margin: -14px 0 0 -14px; }

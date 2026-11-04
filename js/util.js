@@ -90,6 +90,55 @@ export const luminance = (hex) => {
   return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
 };
 
+// Nuance d'une couleur : t de -1 (plus foncé) à 1 (plus clair), même teinte.
+// Calcul en OKLab (écarts réguliers à l'œil), saturation réduite si besoin
+// pour rester dans les couleurs affichables.
+const toLin = (c) => ((c /= 255) <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+const toSrgb = (c) => 255 * (c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055);
+
+function oklab(r, g, b) {
+  r = toLin(r); g = toLin(g); b = toLin(b);
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  return [
+    0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s,
+    1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s,
+    0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s,
+  ];
+}
+
+function linFromOklab(L, a, b) {
+  const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+  const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+  const s = (L - 0.0894841775 * a - 1.291485548 * b) ** 3;
+  return [
+    4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+    -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+    -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s,
+  ];
+}
+
+export function toneColor(hex, t) {
+  if (!t) return hex;
+  const [L, A, B] = oklab(...hexToRgb(hex));
+  const C = Math.hypot(A, B), h = Math.atan2(B, A);
+  const L2 = t > 0 ? L + (Math.max(0.97, L) - L) * t : L + (Math.min(0.16, L * 0.5) - L) * -t;
+  const C2 = C * (t > 0 ? 1 - 0.3 * t : 1 - 0.12 * -t);
+  const rgb = (k) => linFromOklab(L2, C2 * k * Math.cos(h), C2 * k * Math.sin(h));
+  const ok = (v) => v.every((c) => c >= -1e-4 && c <= 1.0001);
+  let k = 1;
+  if (!ok(rgb(1))) {
+    let lo = 0, hi = 1;
+    for (let i = 0; i < 16; i++) {
+      const mid = (lo + hi) / 2;
+      if (ok(rgb(mid))) lo = mid; else hi = mid;
+    }
+    k = lo;
+  }
+  return rgbToHex(...rgb(k).map((c) => toSrgb(clamp(c, 0, 1))));
+}
+
 /* ---------- Canvas ---------- */
 
 export function makeCanvas(w, h) {

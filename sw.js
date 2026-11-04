@@ -1,6 +1,6 @@
 // Service worker : rend l'appli installable et utilisable hors ligne.
 // Réseau d'abord pour toujours servir la dernière version publiée.
-const CACHE = 'pastel-v3';
+const CACHE = 'pastel-v4';
 const SHELL = [
   './',
   'index.html',
@@ -24,6 +24,7 @@ const SHELL = [
   'js/i18n.js',
   'js/sound.js',
   'js/floatpal.js',
+  'js/tone.js',
   'icons/icon.svg',
   'icons/icon-192.png',
   'icons/icon-512.png',

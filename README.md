@@ -20,6 +20,9 @@ Pensée pour l'Apple Pencil : pression, inclinaison (ombrage au crayon), survol.
 - **Palette flottante** : l'épingle à côté d'une palette (panneau Couleurs → Palettes,
   « Mes couleurs » ou « Récentes ») la détache en petite fenêtre qu'on déplace où
   l'on veut ; palette, disposition et position sont mémorisées.
+- **Nuance** : un curseur (panneau Couleurs et palette flottante) fonce ou éclaircit
+  la couleur choisie sans changer de teinte, plus 9 variations prêtes à toucher.
+  Calcul en OKLab pour des écarts réguliers à l'œil.
 - **Sons** synthétisés selon l'outil (grattement du crayon, glisse du feutre,
   pinceau mouillé, gouttes d'aquarelle, souffle de l'aérographe, clochettes des
   paillettes, frottement de la gomme, peinture versée au remplissage). Volume et
@@ -76,6 +79,6 @@ Changer `CACHE` dans `sw.js` seulement si la liste des fichiers change.
 - `js/pages.js` : générateurs de coloriages. `js/lineart.js` : image/photo → traits.
 - `js/editor.js` : écran de dessin (saisie, gestes, historique, export).
 - `js/i18n.js` : traductions (fr, en, es-419). `js/sound.js` : sons (Web Audio).
-- `js/floatpal.js` : palette flottante.
+- `js/floatpal.js` : palette flottante. `js/tone.js` : curseur de nuance.
 - `js/gallery.js` : accueil. `js/colorpicker.js` : couleurs. `js/store.js` : IndexedDB.
 - `sw.js`, `manifest.webmanifest`, `icons/` : installation en appli.

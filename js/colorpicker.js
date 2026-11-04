@@ -4,7 +4,8 @@
 
 import { S, saveSettings } from './settings.js';
 import { ICONS } from './icons.js';
-import { el, $, clamp, hexHsv, hsvHex, normHex, TAU } from './util.js';
+import { el, $, clamp, hexHsv, hsvHex, normHex, TAU, toneColor } from './util.js';
+import { ToneSlider, toneOf, applyTone, TONE_STEPS } from './tone.js';
 import { t } from './i18n.js';
 
 export const PALETTES = [
@@ -63,6 +64,13 @@ export class ColorPanel {
     } });
     const head = el('div', { class: 'cp-head' }, el('div', { class: 'cp-pair' }, this.c1, this.c2), swap, this.hex);
 
+    // Nuance de la couleur choisie : curseur + rangée de variations.
+    this.tone = new ToneSlider(this.target, () => this.afterTone());
+    this.toneChips = el('div', { class: 'tone-chips' });
+    const toneBox = el('div', { class: 'cp-tone' },
+      el('div', { class: 'tone-row' }, el('b', {}, t('tone.title')), el('span', {}, t('tone.dark') + ' ← → ' + t('tone.light'))),
+      this.tone.el, this.toneChips);
+
     this.tabs = el('div', { class: 'seg' },
       el('button', { 'data-tab': 'wheel', onclick: () => this.showTab('wheel') }, t('cp.wheel')),
       el('button', { 'data-tab': 'palettes', onclick: () => this.showTab('palettes') }, t('cp.palettes')));
@@ -73,12 +81,19 @@ export class ColorPanel {
     this.wheelPane = el('div', { class: 'cp-pane' }, this.wheel, el('p', { class: 'cp-label' }, t('cp.harmonies')), this.harm);
     this.palPane = el('div', { class: 'cp-pane cp-pal' });
     this.recent = el('div', { class: 'swatches' });
-    this.root.append(head, this.tabs, this.wheelPane, this.palPane, this.label(t('cp.recent'), 'recent'), this.recent);
+    this.root.append(head, toneBox, this.tabs, this.wheelPane, this.palPane, this.label(t('cp.recent'), 'recent'), this.recent);
     this.bindWheel();
+  }
+
+  afterTone() {
+    [this.h, this.s, this.v] = hexHsv(this.value);
+    this.refresh();
+    this.onChange();
   }
 
   pick(target) {
     this.target = target;
+    this.tone.setTarget(target);
     [this.h, this.s, this.v] = hexHsv(this.value);
     this.refresh();
   }
@@ -142,6 +157,13 @@ export class ColorPanel {
     this.c2.style.setProperty('--c', S.color2);
     this.c1.classList.toggle('on', this.target === 'color');
     this.c2.classList.toggle('on', this.target === 'color2');
+    this.tone.update();
+    const cur = toneOf(this.target);
+    this.toneChips.replaceChildren(...TONE_STEPS.map((v) => el('button', {
+      class: 'sw' + (Math.abs(v - cur.t) < 0.1 ? ' on' : ''), style: `--c:${toneColor(cur.base, v)}`,
+      'aria-label': `${t('tone.title')} ${Math.round(v * 100)}`,
+      onclick: () => { applyTone(this.target, v); this.afterTone(); },
+    })));
     if (document.activeElement !== this.hex) this.hex.value = this.value;
     this.recent.replaceChildren(...(S.recent.length ? S.recent.map((c) => this.swatch(c)) : [el('span', { class: 'hint' }, t('cp.recent.empty'))]));
     if (this.tab === 'wheel') {
