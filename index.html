@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>Pastel</title>
+  <meta name="description" content="Coloriage et dessin pour iPad : crayons, feutres, pinceaux, aquarelle, pastels, paillettes, remplissage par toucher.">
+  <meta name="theme-color" content="#f7f2ec">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Pastel">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Accueil -->
+  <section id="gallery">
+    <header class="g-head">
+      <div class="brand"><span id="g-logo" class="logo"></span><h1>Pastel</h1></div>
+      <nav id="g-tabs" class="seg">
+        <button data-tab="mine">Mes dessins</button>
+        <button data-tab="pages">Coloriages</button>
+        <button data-tab="create">Créer</button>
+      </nav>
+    </header>
+    <main id="g-main"></main>
+  </section>
+
+  <!-- Dessin -->
+  <section id="editor" hidden>
+    <div id="viewport">
+      <div id="stage">
+        <canvas id="cv-paint"></canvas>
+        <canvas id="cv-lines"></canvas>
+      </div>
+    </div>
+    <div id="cursor" hidden></div>
+    <div id="size-preview" hidden></div>
+    <div id="pick-bubble" hidden></div>
+
+    <header id="ed-top">
+      <div class="pill">
+        <button id="ed-back" class="icon-btn" aria-label="Retour à la galerie"></button>
+        <button id="ed-undo" class="icon-btn" aria-label="Annuler" disabled></button>
+        <button id="ed-redo" class="icon-btn" aria-label="Rétablir" disabled></button>
+      </div>
+      <button id="ed-title" class="title-btn" aria-label="Renommer"></button>
+      <div class="pill">
+        <button id="ed-inside" class="toggle" aria-label="Rester dans les traits"><span>Dans les traits</span></button>
+        <button id="ed-lines" class="toggle" aria-label="Afficher les traits"><span>Traits</span></button>
+        <button id="ed-share" class="icon-btn" aria-label="Exporter"></button>
+        <button id="ed-settings" class="icon-btn" aria-label="Réglages"></button>
+      </div>
+    </header>
+
+    <div id="ed-sliders">
+      <div class="vslider" id="sl-size">
+        <div class="track"><div class="fill"></div><div class="thumb"></div></div>
+        <span class="lbl">Taille</span><span class="bubble"></span>
+      </div>
+      <div class="vslider" id="sl-opacity">
+        <div class="track"><div class="fill"></div><div class="thumb"></div></div>
+        <span class="lbl">Opacité</span><span class="bubble"></span>
+      </div>
+    </div>
+
+    <nav id="dock" aria-label="Outils"></nav>
+    <div id="tool-pop" class="popover" hidden></div>
+    <div id="color-pop" class="popover" hidden></div>
+    <button id="zoom-badge" hidden></button>
+  </section>
+
+  <div id="busy" hidden><div class="spinner"></div><p></p></div>
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

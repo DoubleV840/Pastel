@@ -1,0 +1,38 @@
+// Icônes SVG. La classe `tip` prend la couleur active (variable --tip).
+
+const svg = (body) =>
+  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
+
+export const ICONS = {
+  pencil: svg('<path d="M15.2 4.3l4.5 4.5L8.6 19.9l-5.1.6.6-5.1z"/><path class="tip" d="M4.1 15.4l4.5 4.5-5.1.6z"/><path d="M13 6.5l4.5 4.5"/>'),
+  marker: svg('<path d="M14.6 3.4l6 6-8.4 8.4-6-6z"/><path class="tip" d="M6.2 11.8l6 6-2.6 2.6-2.9.3-3.4-3.4.3-2.9z"/><path d="M17.6 6.4l-2.5 2.5"/>'),
+  brush: svg('<path d="M20.6 3.4c-3 1.4-7.6 5.9-9.6 8.5l2.1 2.1c2.6-2 7.1-6.6 8.5-9.6z"/><path class="tip" d="M10.1 13c-2.5 0-4.1 1.5-4.3 3.5-.2 1.6-1 2.6-2.3 3.3 3.8.6 7.7-.5 8.6-4.8z"/>'),
+  water: svg('<path class="tip" d="M12 3.2c3.1 4 5.7 7.1 5.7 10.2a5.7 5.7 0 0 1-11.4 0C6.3 10.3 8.9 7.2 12 3.2z"/><path d="M9.3 14.2a2.8 2.8 0 0 0 2.6 2.7" stroke="#fff" stroke-opacity=".85"/>'),
+  pastel: svg('<path d="M16.2 3.2l4.6 4.6-8.6 8.6-4.6-4.6z"/><path class="tip" d="M7.6 11.8l4.6 4.6-3.4 3.4c-.7.7-1.9.7-2.6 0l-2-2c-.7-.7-.7-1.9 0-2.6z"/>'),
+  air: svg('<rect x="4.5" y="9.5" width="9" height="11.5" rx="2"/><path d="M6.8 9.5V6.8h4.4v2.7"/><path d="M9 6.8V4.6"/><g class="tip" stroke="none"><circle cx="17.6" cy="5" r="1.1"/><circle cx="20.3" cy="7.6" r="1.1"/><circle cx="20.6" cy="3.4" r=".9"/><circle cx="17.6" cy="9.8" r=".9"/><circle cx="21" cy="11.4" r=".7"/></g>'),
+  glitter: svg('<path class="tip" d="M10 2.8l1.8 5.4 5.4 1.8-5.4 1.8L10 17.2l-1.8-5.4L2.8 10l5.4-1.8z"/><path class="tip" d="M18 13.6l.9 2.2 2.2.9-2.2.9-.9 2.2-.9-2.2-2.2-.9 2.2-.9z"/>'),
+  blend: svg('<path d="M20.4 3.6l-9.2 9.2"/><path d="M21 6.3l-8.2 8.2-3.3-3.3 8.2-8.2c.9-.9 2.4-.9 3.3 0 .9.9.9 2.4 0 3.3z"/><path class="tip-stroke" d="M3 19.5c2.4-.3 3.3-3 5.6-3.3 2.2-.3 2.6 2.3 5 1.9" stroke-width="2.6"/>'),
+  eraser: svg('<path d="M14.3 3.6l6.1 6.1-9.8 9.8H6.4l-3-3a1.6 1.6 0 0 1 0-2.3z"/><path d="M8.6 9.3l6.1 6.1"/><path d="M10.6 19.5h9.4"/>'),
+  fill: svg('<path d="M10.8 3.4l8.2 8.2-7.4 7.4c-.6.6-1.6.6-2.2 0l-6-6c-.6-.6-.6-1.6 0-2.2z"/><path d="M4 11.3h14.4"/><path class="tip" d="M20.2 14.4s2.1 2.4 2.1 3.8a2.1 2.1 0 0 1-4.2 0c0-1.4 2.1-3.8 2.1-3.8z" stroke="none"/>'),
+  picker: svg('<path d="M17.3 3.6a2.3 2.3 0 0 1 3.2 3.2l-2.6 2.6-3.2-3.2z"/><path d="M15.9 8.2L6.3 17.8l-2.8 1 1-2.8 9.6-9.6"/><path d="M13.4 5.6l5 5"/>'),
+  back: svg('<path d="M15 5l-7 7 7 7"/>'),
+  undo: svg('<path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>'),
+  redo: svg('<path d="M15 14l5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/>'),
+  share: svg('<path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/>'),
+  settings: svg('<path d="M3 6h9M18 6h3M3 12h3M12 12h9M3 18h11M20 18h1"/><circle cx="15" cy="6" r="2.2"/><circle cx="9" cy="12" r="2.2"/><circle cx="17" cy="18" r="2.2"/>'),
+  eye: svg('<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'),
+  inside: svg('<path d="M4.5 8.5C4.5 5.5 7 4 9.5 4.5s3 2 5.5 1.5 4.5 1 4.5 4-1 4-1 6.5-1.5 4-4.5 3.5-4-1.5-6.5-1-4.5-1.5-4.5-4 1.5-3.5 1.5-6z" stroke-dasharray="2.4 2.2"/><path class="tip-stroke" d="M8 13.5c1.6-2.6 2.8-4 4.2-2.6s1.6 2.8 3.8-.4" stroke-width="2.2"/>'),
+  swap: svg('<path d="M7 4L3 8l4 4"/><path d="M3 8h13"/><path d="M17 20l4-4-4-4"/><path d="M21 16H8"/>'),
+  plus: svg('<path d="M12 5v14M5 12h14"/>'),
+  more: svg('<circle cx="5.5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="18.5" cy="12" r="1.3"/>'),
+  close: svg('<path d="M6 6l12 12M18 6L6 18"/>'),
+  image: svg('<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="M20.5 16l-5-5-8.5 8.5"/>'),
+  camera: svg('<path d="M4 8.5a2 2 0 0 1 2-2h2l1.5-2h5L16 6.5h2a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.6"/>'),
+  page: svg('<path d="M6.5 3.5h7l4.5 4.5v12.5h-11.5z"/><path d="M13.5 3.5V8H18"/>'),
+  palette: svg('<path d="M12 3.5a8.5 8.5 0 1 0 0 17c1.3 0 1.9-.9 1.6-1.9-.4-1.2.3-2.3 1.6-2.3h1.7c2 0 3.6-1.6 3.6-3.6C20.5 7.6 16.7 3.5 12 3.5z"/><circle cx="7.6" cy="11" r="1.1"/><circle cx="10.2" cy="7.4" r="1.1"/><circle cx="14.6" cy="7.6" r="1.1"/>'),
+  sparkle: svg('<path d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/>'),
+  trash: svg('<path d="M4.5 7h15"/><path d="M9.5 7V4.5h5V7"/><path d="M6.5 7l1 13h9l1-13"/>'),
+  copy: svg('<rect x="8.5" y="8.5" width="11" height="11" rx="2"/><path d="M15.5 8.5V6a1.5 1.5 0 0 0-1.5-1.5H6A1.5 1.5 0 0 0 4.5 6v8A1.5 1.5 0 0 0 6 15.5h2.5"/>'),
+  edit: svg('<path d="M15.5 4.5l4 4L9 19H5v-4z"/>'),
+  restart: svg('<path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4.5v4h4"/>'),
+};
