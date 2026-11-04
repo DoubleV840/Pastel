@@ -1,6 +1,9 @@
 import { initEditor, openArt } from './editor.js';
 import { initGallery, refreshGallery } from './gallery.js';
 import { askPersist } from './store.js';
+import { applyStatic } from './i18n.js';
+
+applyStatic();
 
 // Safari : pas de zoom de page au pincement, seulement celui de la toile.
 document.addEventListener('gesturestart', (e) => e.preventDefault());

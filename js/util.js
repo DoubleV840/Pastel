@@ -1,5 +1,7 @@
 // Petits outils partagés : maths, couleurs, canvas, DOM.
 
+import { t } from './i18n.js';
+
 export const TAU = Math.PI * 2;
 export const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
 export const lerp = (a, b, t) => a + (b - a) * t;
@@ -127,7 +129,7 @@ export function rectInt(r, W, H) {
 
 export function canvasToBlob(canvas, type = 'image/png', quality) {
   return new Promise((res, rej) =>
-    canvas.toBlob((b) => (b ? res(b) : rej(new Error('Export impossible'))), type, quality));
+    canvas.toBlob((b) => (b ? res(b) : rej(new Error(t('err.export')))), type, quality));
 }
 
 // <img> plutôt que createImageBitmap : Safari y applique l'orientation EXIF des photos.
@@ -136,7 +138,7 @@ export function loadImage(src) {
     const url = src instanceof Blob ? URL.createObjectURL(src) : src;
     const img = new Image();
     img.onload = () => { if (src instanceof Blob) URL.revokeObjectURL(url); res(img); };
-    img.onerror = () => { if (src instanceof Blob) URL.revokeObjectURL(url); rej(new Error('Image illisible')); };
+    img.onerror = () => { if (src instanceof Blob) URL.revokeObjectURL(url); rej(new Error(t('err.unreadable'))); };
     img.src = url;
   });
 }

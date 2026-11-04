@@ -14,6 +14,7 @@ import {
   $, $$, el, clamp, makeCanvas, freeCanvas, clipRect, canvasToBlob, loadImage, toast, nextFrame,
   rgbToHex, hexToRgb,
 } from './util.js';
+import { t, LANGS, lang, setLang } from './i18n.js';
 
 const vp = $('#viewport'), stage = $('#stage'), cvPaint = $('#cv-paint'), cvLines = $('#cv-lines');
 const engine = new Engine(), pvEngine = new Engine();
@@ -69,7 +70,7 @@ function buildDock() {
   }
   dock.append(el('span', { class: 'dock-sep' }));
   dock.append(el('button', {
-    class: 'color-btn', id: 'color-btn', 'aria-label': 'Couleurs',
+    class: 'color-btn', id: 'color-btn', 'aria-label': t('colors'),
     html: '<span class="c2"></span><span class="c1"></span>', onclick: () => togglePop('color'),
   }));
 }
@@ -144,8 +145,8 @@ function renderToolPop() {
     list.append(b);
   }
   const hint = g.id === 'fill'
-    ? 'Touche une zone pour la remplir. Dégradés : fais glisser pour choisir la direction. La seconde couleur sert aux dégradés et aux motifs.'
-    : g.id === 'blend' ? 'Étale et mélange les couleurs déjà posées.' : null;
+    ? t('hint.fill')
+    : g.id === 'blend' ? t('hint.blend') : null;
   $('#tool-pop').replaceChildren(el('div', { class: 'pop-head' }, el('b', {}, g.name)), list, ...(hint ? [el('p', { class: 'pop-hint' }, hint)] : []));
 }
 
@@ -330,7 +331,7 @@ function onDown(e) {
   if (e.pointerType === 'pen' && !S.penSeen) {
     S.penSeen = true;
     saveSettings();
-    if (S.finger === 'auto') toast('Apple Pencil détecté : les doigts servent maintenant à zoomer et déplacer', 3500);
+    if (S.finger === 'auto') toast(t('toast.pen'), 3500);
   }
   if (e.pointerType === 'mouse' && e.button !== 0) return;
   if (mode === 'gesture') endGesture(false);
@@ -660,7 +661,7 @@ const undo = () => step(history.undo, history.redo);
 const redo = () => step(history.redo, history.undo);
 
 function clearPaint() {
-  if (!confirm('Effacer toutes les couleurs de ce dessin ? (Annuler reste possible.)')) return;
+  if (!confirm(t('confirm.clear'))) return;
   const R = [0, 0, doc.w, doc.h];
   history.push({ x: 0, y: 0, data: bctx.getImageData(...R) });
   pctx.clearRect(...R);
@@ -715,7 +716,7 @@ export function save() {
       await store.put(rec);
     } catch (err) {
       changed = true;
-      toast('Enregistrement impossible : ' + err.message, 4000);
+      toast(t('err.save', { msg: err.message }), 4000);
     }
   });
   return saving;
@@ -762,27 +763,29 @@ function openSettings() {
     return root;
   };
   const body = el('div', { class: 'form' },
-    field('Doigt sur l’écran',
-      segmented([['auto', 'Auto'], ['draw', 'Dessine'], ['nav', 'Zoom et déplacement']], S.finger, (v) => { S.finger = v; saveSettings(); }),
-      el('p', { class: 'hint' }, 'Auto : le doigt dessine tant qu’aucun Apple Pencil n’a été utilisé ; ensuite il sert à zoomer et déplacer (appui long = pipette).')),
-    field('Pression de l’Apple Pencil',
-      segmented([['soft', 'Légère'], ['normal', 'Normale'], ['firm', 'Appuyée']], S.pressure, (v) => { S.pressure = v; saveSettings(); })),
-    field('Lissage du trait',
+    field(t('lang.title'),
+      segmented(LANGS.map(([id, label]) => [id, label.replace(/ \(.*\)$/, '')]), lang, (v) => { setLang(v); s.close(); openSettings(); })),
+    field(t('set.finger'),
+      segmented(['auto', 'draw', 'nav'].map((v) => [v, t('set.finger.' + v)]), S.finger, (v) => { S.finger = v; saveSettings(); }),
+      el('p', { class: 'hint' }, t('set.finger.hint'))),
+    field(t('set.pressure'),
+      segmented(['soft', 'normal', 'firm'].map((v) => [v, t('pressure.' + v)]), S.pressure, (v) => { S.pressure = v; saveSettings(); })),
+    field(t('set.smoothing'),
       range({ min: 0, max: 90, step: 5, value: Math.round(S.smoothing * 100), onInput: (v) => { S.smoothing = v / 100; saveSettings(); } })),
-    field('Curseurs taille et opacité',
-      check('À droite de l’écran (gaucher)', S.left, (v) => { S.left = v; saveSettings(); refreshSliders(); })),
-    field('Papier', chips(PAPERS, r.paper, (id) => { r.paper = id; applyPaper(); markDirty(); changed = true; }, true)),
-    doc.hasLines ? field('Couleur des traits', chips(LINE_COLORS, r.lineColor, (id) => { r.lineColor = id; tintLines(); markDirty(); }, true)) : null,
-    field('Ce dessin', el('div', { class: 'row-btns' },
-      el('button', { class: 'btn', onclick: rename }, 'Renommer'),
-      el('button', { class: 'btn danger', onclick: clearPaint }, 'Effacer les couleurs'))),
-    el('p', { class: 'hint' }, 'Gestes : pincer pour zoomer · toucher à 2 doigts = annuler · à 3 doigts = rétablir.'),
+    field(t('set.sliders'),
+      check(t('set.left'), S.left, (v) => { S.left = v; saveSettings(); refreshSliders(); })),
+    field(t('field.paper'), chips(PAPERS, r.paper, (id) => { r.paper = id; applyPaper(); markDirty(); changed = true; }, true)),
+    doc.hasLines ? field(t('set.linecolor'), chips(LINE_COLORS, r.lineColor, (id) => { r.lineColor = id; tintLines(); markDirty(); }, true)) : null,
+    field(t('set.drawing'), el('div', { class: 'row-btns' },
+      el('button', { class: 'btn', onclick: rename }, t('menu.rename')),
+      el('button', { class: 'btn danger', onclick: clearPaint }, t('set.clear')))),
+    el('p', { class: 'hint' }, t('set.gestures')),
   );
-  sheet({ title: 'Réglages', body, actions: [{ label: 'Terminé', primary: true }] });
+  const s = sheet({ title: t('set.title'), body, actions: [{ label: t('btn.done'), primary: true }] });
 }
 
 function rename() {
-  const n = prompt('Nom du dessin', doc.rec.name);
+  const n = prompt(t('prompt.name'), doc.rec.name);
   if (n && n.trim()) {
     doc.rec.name = n.trim().slice(0, 60);
     refreshToggles();
@@ -798,12 +801,12 @@ function fileName() {
 function openExport() {
   let withLines = true, withPaper = true, blob = null, gen = 0, url = null;
   const preview = el('img', { class: 'export-preview', alt: '' });
-  const status = el('p', { class: 'hint' }, 'Préparation de l’image…');
-  const dl = el('a', { class: 'btn', download: fileName() + '.png' }, 'Télécharger le PNG');
+  const status = el('p', { class: 'hint' }, t('exp.preparing'));
+  const dl = el('a', { class: 'btn', download: fileName() + '.png' }, t('exp.download'));
   const regen = async () => {
     const my = ++gen;
     s.buttons[0].disabled = true;
-    status.textContent = 'Préparation de l’image…';
+    status.textContent = t('exp.preparing');
     await nextFrame();
     const c = composite(1, { lines: withLines, paper: withPaper });
     const b = await canvasToBlob(c);
@@ -813,19 +816,19 @@ function openExport() {
     if (url) URL.revokeObjectURL(url);
     url = URL.createObjectURL(b);
     preview.src = dl.href = url;
-    status.textContent = `${doc.w} × ${doc.h} px · ${(b.size / 1e6).toFixed(1)} Mo`;
+    status.textContent = t('exp.size', { w: doc.w, h: doc.h, mb: (b.size / 1e6).toFixed(1) });
     s.buttons[0].disabled = false;
   };
   const body = el('div', { class: 'form' },
     preview, status,
-    doc.hasLines ? check('Avec les traits du dessin', true, (v) => { withLines = v; regen(); }) : null,
-    check('Avec le papier (sinon fond transparent)', true, (v) => { withPaper = v; regen(); }),
+    doc.hasLines ? check(t('exp.lines'), true, (v) => { withLines = v; regen(); }) : null,
+    check(t('exp.paper'), true, (v) => { withPaper = v; regen(); }),
     dl);
   const s = sheet({
-    title: 'Exporter', body,
+    title: t('exp.title'), body,
     onClose: () => { gen++; if (url) setTimeout(() => URL.revokeObjectURL(url), 1000); },
     actions: [{
-      label: 'Partager ou enregistrer dans Photos', primary: true,
+      label: t('exp.share'), primary: true,
       onClick: () => {
         if (!blob) return;
         const file = new File([blob], fileName() + '.png', { type: 'image/png' });
@@ -840,7 +843,7 @@ function openExport() {
 /* ---------- Ouverture et fermeture ---------- */
 
 export async function openArt(rec, { lines } = {}) {
-  busy('Ouverture du dessin…');
+  busy(t('busy.open'));
   await nextFrame();
   try {
     if (rec.lines === undefined || rec.paint === undefined) Object.assign(rec, await store.load(rec.id));
@@ -859,7 +862,7 @@ export async function openArt(rec, { lines } = {}) {
     cvLines.hidden = !doc.hasLines;
     if (doc.hasLines) {
       lctx.drawImage(lines || (await loadImage(rec.lines)), 0, 0, w, h);
-      busy('Repérage des zones à colorier…');
+      busy(t('busy.regions'));
       await nextFrame();
       doc.regions = computeRegions(lctx.getImageData(0, 0, w, h).data, w, h, { closeGaps: !!rec.closeGaps });
       tintLines();
@@ -875,7 +878,7 @@ export async function openArt(rec, { lines } = {}) {
     $('#editor').hidden = false;
     fit();
   } catch (err) {
-    toast('Ouverture impossible : ' + err.message, 4000);
+    toast(t('err.open', { msg: err.message }), 4000);
     doc = null;
   } finally {
     busy(null);
@@ -886,7 +889,7 @@ async function close() {
   if (mode) cancelAction();
   closePops();
   clearTimeout(saveTimer);
-  busy('Enregistrement…');
+  busy(t('busy.saving'));
   await save();
   busy(null);
   releaseRegions(doc.regions);
@@ -922,13 +925,19 @@ export function initEditor({ onClosed }) {
     S.stayInside = !S.stayInside;
     saveSettings();
     refreshToggles();
-    toast(S.stayInside ? 'Rester dans les traits : activé' : 'Rester dans les traits : désactivé', 1600);
+    toast(t(S.stayInside ? 'toast.inside.on' : 'toast.inside.off'), 1600);
   };
   $('#ed-lines').onclick = () => {
     cvLines.hidden = !cvLines.hidden;
     refreshToggles();
   };
   $('#zoom-badge').onclick = fit;
+  addEventListener('langchange', () => {
+    closePops();
+    buildDock();
+    refreshDock();
+    colorPanel.build();
+  });
 
   vp.addEventListener('pointerdown', onDown);
   vp.addEventListener('pointermove', onMove);

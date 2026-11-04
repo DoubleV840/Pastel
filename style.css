@@ -136,6 +136,8 @@ svg { display: block; }
   padding: calc(14px + var(--safe-t)) calc(24px + var(--safe-r)) 14px calc(24px + var(--safe-l));
 }
 .brand { display: flex; align-items: center; gap: 10px; }
+.g-right { display: flex; align-items: center; gap: 8px; max-width: 100%; }
+#g-lang { color: var(--muted); }
 .brand h1 { margin: 0; font-size: 28px; letter-spacing: -0.02em; }
 .logo {
   width: 40px;

@@ -2,6 +2,7 @@
 
 import { $, el } from './util.js';
 import { ICONS } from './icons.js';
+import { t } from './i18n.js';
 
 export function busy(msg) {
   const b = $('#busy');
@@ -25,7 +26,7 @@ export function sheet({ title, body, actions = [], wide = false, onClose }) {
   }, a.label));
   const box = el('div', { class: 'sheet' + (wide ? ' wide' : '') },
     el('div', { class: 'sheet-head' }, el('h2', {}, title),
-      el('button', { class: 'icon-btn sm', 'aria-label': 'Fermer', html: ICONS.close, onclick: close })),
+      el('button', { class: 'icon-btn sm', 'aria-label': t('btn.close'), html: ICONS.close, onclick: close })),
     el('div', { class: 'sheet-body' }, body),
     buttons.length ? el('div', { class: 'sheet-actions' }, buttons) : null);
   modal.append(box);

@@ -2,6 +2,7 @@
 // Tailles en pixels du document (côté long de 2048 px).
 
 import { makeCanvas, tileNoise, clamp } from './util.js';
+import { t as tr } from './i18n.js';
 
 const S = 128; // résolution des empreintes de pointe
 
@@ -9,104 +10,113 @@ const S = 128; // résolution des empreintes de pointe
 
 export const GROUPS = [
   {
-    id: 'pencil', name: 'Crayons', icon: 'pencil',
+    id: 'pencil', icon: 'pencil',
     tools: [
-      { id: 'pencil-color', name: 'Crayon de couleur', kind: 'paint', dab: 'pencil', size: 10, min: 2, max: 48, opacity: 1, flow: 0.38, spacing: 0.12, pSize: 0.35, pFlow: 0.9, grain: ['paper', 0.7], tilt: true, angle: 'random' },
-      { id: 'pencil-fine', name: 'Crayon fin', kind: 'paint', dab: 'pencil', size: 4, min: 1, max: 16, opacity: 1, flow: 0.55, spacing: 0.15, pSize: 0.2, pFlow: 0.85, grain: ['paper', 0.45], tilt: true, angle: 'random' },
-      { id: 'pencil-soft', name: 'Crayon gras', kind: 'paint', dab: 'pencil', size: 18, min: 4, max: 64, opacity: 1, flow: 0.42, spacing: 0.1, pSize: 0.4, pFlow: 0.8, grain: ['rough', 0.6], tilt: true, angle: 'random' },
-      { id: 'pencil-sketch', name: 'Crayon esquisse', kind: 'paint', dab: 'pencil', size: 6, min: 1, max: 24, opacity: 0.85, flow: 0.22, spacing: 0.12, pSize: 0.25, pFlow: 1, grain: ['paper', 0.55], tilt: true, angle: 'random' },
+      { id: 'pencil-color', kind: 'paint', dab: 'pencil', size: 10, min: 2, max: 48, opacity: 1, flow: 0.38, spacing: 0.12, pSize: 0.35, pFlow: 0.9, grain: ['paper', 0.7], tilt: true, angle: 'random' },
+      { id: 'pencil-fine', kind: 'paint', dab: 'pencil', size: 4, min: 1, max: 16, opacity: 1, flow: 0.55, spacing: 0.15, pSize: 0.2, pFlow: 0.85, grain: ['paper', 0.45], tilt: true, angle: 'random' },
+      { id: 'pencil-soft', kind: 'paint', dab: 'pencil', size: 18, min: 4, max: 64, opacity: 1, flow: 0.42, spacing: 0.1, pSize: 0.4, pFlow: 0.8, grain: ['rough', 0.6], tilt: true, angle: 'random' },
+      { id: 'pencil-sketch', kind: 'paint', dab: 'pencil', size: 6, min: 1, max: 24, opacity: 0.85, flow: 0.22, spacing: 0.12, pSize: 0.25, pFlow: 1, grain: ['paper', 0.55], tilt: true, angle: 'random' },
     ],
   },
   {
-    id: 'marker', name: 'Feutres', icon: 'marker',
+    id: 'marker', icon: 'marker',
     tools: [
-      { id: 'marker-fine', name: 'Feutre fin', kind: 'paint', dab: 'hard', size: 8, min: 2, max: 32, opacity: 0.92, flow: 1, spacing: 0.06, pSize: 0.15, pFlow: 0, blend: 'multiply' },
-      { id: 'marker-brush', name: 'Feutre pinceau', kind: 'paint', dab: 'hard', size: 20, min: 3, max: 72, opacity: 0.88, flow: 1, spacing: 0.05, pSize: 0.85, pFlow: 0, blend: 'multiply' },
-      { id: 'marker-chisel', name: 'Feutre biseauté', kind: 'paint', dab: 'square', size: 28, min: 6, max: 96, opacity: 0.8, flow: 1, spacing: 0.04, pSize: 0.1, pFlow: 0, ratio: 0.28, angle: 'azimuth', blend: 'multiply' },
-      { id: 'marker-highlight', name: 'Surligneur', kind: 'paint', dab: 'square', size: 44, min: 10, max: 140, opacity: 0.42, flow: 1, spacing: 0.04, pSize: 0, pFlow: 0, ratio: 0.32, angle: 'fixed', angleValue: Math.PI / 2, blend: 'multiply' },
+      { id: 'marker-fine', kind: 'paint', dab: 'hard', size: 8, min: 2, max: 32, opacity: 0.92, flow: 1, spacing: 0.06, pSize: 0.15, pFlow: 0, blend: 'multiply' },
+      { id: 'marker-brush', kind: 'paint', dab: 'hard', size: 20, min: 3, max: 72, opacity: 0.88, flow: 1, spacing: 0.05, pSize: 0.85, pFlow: 0, blend: 'multiply' },
+      { id: 'marker-chisel', kind: 'paint', dab: 'square', size: 28, min: 6, max: 96, opacity: 0.8, flow: 1, spacing: 0.04, pSize: 0.1, pFlow: 0, ratio: 0.28, angle: 'azimuth', blend: 'multiply' },
+      { id: 'marker-highlight', kind: 'paint', dab: 'square', size: 44, min: 10, max: 140, opacity: 0.42, flow: 1, spacing: 0.04, pSize: 0, pFlow: 0, ratio: 0.32, angle: 'fixed', angleValue: Math.PI / 2, blend: 'multiply' },
     ],
   },
   {
-    id: 'brush', name: 'Pinceaux', icon: 'brush',
+    id: 'brush', icon: 'brush',
     tools: [
-      { id: 'brush-round', name: 'Pinceau rond', kind: 'paint', dab: 'soft85', size: 26, min: 2, max: 180, opacity: 1, flow: 1, spacing: 0.06, pSize: 0.8, pFlow: 0.2 },
-      { id: 'brush-flat', name: 'Pinceau plat', kind: 'paint', dab: 'flat', size: 40, min: 6, max: 180, opacity: 1, flow: 0.9, spacing: 0.04, pSize: 0.3, pFlow: 0.3, ratio: 0.3, angle: 'direction', grain: ['canvas', 0.22] },
-      { id: 'brush-oil', name: "Peinture à l'huile", kind: 'paint', dab: 'bristle', size: 36, min: 8, max: 160, opacity: 1, flow: 0.9, spacing: 0.04, pSize: 0.5, pFlow: 0.3, grain: ['canvas', 0.15] },
-      { id: 'brush-gouache', name: 'Gouache', kind: 'paint', dab: 'soft70', size: 30, min: 4, max: 160, opacity: 0.96, flow: 0.85, spacing: 0.06, pSize: 0.6, pFlow: 0.3, grain: ['rough', 0.18] },
+      { id: 'brush-round', kind: 'paint', dab: 'soft85', size: 26, min: 2, max: 180, opacity: 1, flow: 1, spacing: 0.06, pSize: 0.8, pFlow: 0.2 },
+      { id: 'brush-flat', kind: 'paint', dab: 'flat', size: 40, min: 6, max: 180, opacity: 1, flow: 0.9, spacing: 0.04, pSize: 0.3, pFlow: 0.3, ratio: 0.3, angle: 'direction', grain: ['canvas', 0.22] },
+      { id: 'brush-oil', kind: 'paint', dab: 'bristle', size: 36, min: 8, max: 160, opacity: 1, flow: 0.9, spacing: 0.04, pSize: 0.5, pFlow: 0.3, grain: ['canvas', 0.15] },
+      { id: 'brush-gouache', kind: 'paint', dab: 'soft70', size: 30, min: 4, max: 160, opacity: 0.96, flow: 0.85, spacing: 0.06, pSize: 0.6, pFlow: 0.3, grain: ['rough', 0.18] },
     ],
   },
   {
-    id: 'water', name: 'Aquarelle', icon: 'water',
+    id: 'water', icon: 'water',
     tools: [
-      { id: 'water-wash', name: 'Lavis', kind: 'paint', dab: 'soft20', size: 70, min: 10, max: 260, opacity: 0.7, flow: 0.16, spacing: 0.08, pSize: 0.5, pFlow: 0.5, blend: 'multiply', grain: ['paper', 0.2], edge: 0.55 },
-      { id: 'water-wet', name: 'Aquarelle humide', kind: 'paint', dab: 'wet', size: 56, min: 10, max: 260, opacity: 0.78, flow: 0.24, spacing: 0.08, pSize: 0.5, pFlow: 0.4, jSize: 0.2, angle: 'random', blend: 'multiply', grain: ['rough', 0.25], edge: 0.9, bleed: 0.55 },
-      { id: 'water-dry', name: 'Pinceau sec', kind: 'paint', dab: 'wet', size: 34, min: 6, max: 160, opacity: 0.85, flow: 0.4, spacing: 0.06, pSize: 0.6, pFlow: 0.5, angle: 'random', blend: 'multiply', grain: ['rough', 0.75], edge: 0.3 },
+      { id: 'water-wash', kind: 'paint', dab: 'soft20', size: 70, min: 10, max: 260, opacity: 0.7, flow: 0.16, spacing: 0.08, pSize: 0.5, pFlow: 0.5, blend: 'multiply', grain: ['paper', 0.2], edge: 0.55 },
+      { id: 'water-wet', kind: 'paint', dab: 'wet', size: 56, min: 10, max: 260, opacity: 0.78, flow: 0.24, spacing: 0.08, pSize: 0.5, pFlow: 0.4, jSize: 0.2, angle: 'random', blend: 'multiply', grain: ['rough', 0.25], edge: 0.9, bleed: 0.55 },
+      { id: 'water-dry', kind: 'paint', dab: 'wet', size: 34, min: 6, max: 160, opacity: 0.85, flow: 0.4, spacing: 0.06, pSize: 0.6, pFlow: 0.5, angle: 'random', blend: 'multiply', grain: ['rough', 0.75], edge: 0.3 },
     ],
   },
   {
-    id: 'pastel', name: 'Pastels', icon: 'pastel',
+    id: 'pastel', icon: 'pastel',
     tools: [
-      { id: 'pastel-chalk', name: 'Pastel sec', kind: 'paint', dab: 'chalk', size: 32, min: 6, max: 128, opacity: 1, flow: 0.5, spacing: 0.08, pSize: 0.3, pFlow: 0.6, jPos: 0.06, angle: 'random', grain: ['rough', 0.75], tilt: true },
-      { id: 'pastel-oil', name: 'Pastel gras', kind: 'paint', dab: 'wax', size: 26, min: 6, max: 110, opacity: 1, flow: 0.85, spacing: 0.06, pSize: 0.25, pFlow: 0.3, angle: 'random', grain: ['rough', 0.5] },
-      { id: 'pastel-crayon', name: 'Crayon de cire', kind: 'paint', dab: 'wax', size: 14, min: 4, max: 60, opacity: 1, flow: 0.9, spacing: 0.08, pSize: 0.2, pFlow: 0.35, angle: 'random', grain: ['paper', 0.8] },
-      { id: 'pastel-charcoal', name: 'Fusain', kind: 'paint', dab: 'charcoal', size: 20, min: 4, max: 96, opacity: 1, flow: 0.42, spacing: 0.08, pSize: 0.3, pFlow: 0.9, angle: 'random', grain: ['rough', 0.8], tilt: true },
+      { id: 'pastel-chalk', kind: 'paint', dab: 'chalk', size: 32, min: 6, max: 128, opacity: 1, flow: 0.5, spacing: 0.08, pSize: 0.3, pFlow: 0.6, jPos: 0.06, angle: 'random', grain: ['rough', 0.75], tilt: true },
+      { id: 'pastel-oil', kind: 'paint', dab: 'wax', size: 26, min: 6, max: 110, opacity: 1, flow: 0.85, spacing: 0.06, pSize: 0.25, pFlow: 0.3, angle: 'random', grain: ['rough', 0.5] },
+      { id: 'pastel-crayon', kind: 'paint', dab: 'wax', size: 14, min: 4, max: 60, opacity: 1, flow: 0.9, spacing: 0.08, pSize: 0.2, pFlow: 0.35, angle: 'random', grain: ['paper', 0.8] },
+      { id: 'pastel-charcoal', kind: 'paint', dab: 'charcoal', size: 20, min: 4, max: 96, opacity: 1, flow: 0.42, spacing: 0.08, pSize: 0.3, pFlow: 0.9, angle: 'random', grain: ['rough', 0.8], tilt: true },
     ],
   },
   {
-    id: 'air', name: 'Aérographe', icon: 'air',
+    id: 'air', icon: 'air',
     tools: [
-      { id: 'air-soft', name: 'Aérographe', kind: 'paint', dab: 'soft0', size: 90, min: 10, max: 420, opacity: 1, flow: 0.06, spacing: 0.06, pSize: 0.2, pFlow: 1, buildup: true },
-      { id: 'air-fine', name: 'Aérographe fin', kind: 'paint', dab: 'soft20', size: 22, min: 3, max: 90, opacity: 1, flow: 0.12, spacing: 0.08, pSize: 0.3, pFlow: 1, buildup: true },
-      { id: 'air-spray', name: 'Bombe', kind: 'paint', dab: 'spray', size: 70, min: 12, max: 320, opacity: 1, flow: 0.85, spacing: 0.12, pSize: 0.2, pFlow: 1, density: 1, buildup: true },
-      { id: 'air-splatter', name: 'Éclaboussures', kind: 'paint', dab: 'splatter', size: 90, min: 20, max: 360, opacity: 1, flow: 1, spacing: 0.5, pSize: 0.3, pFlow: 0 },
+      { id: 'air-soft', kind: 'paint', dab: 'soft0', size: 90, min: 10, max: 420, opacity: 1, flow: 0.06, spacing: 0.06, pSize: 0.2, pFlow: 1, buildup: true },
+      { id: 'air-fine', kind: 'paint', dab: 'soft20', size: 22, min: 3, max: 90, opacity: 1, flow: 0.12, spacing: 0.08, pSize: 0.3, pFlow: 1, buildup: true },
+      { id: 'air-spray', kind: 'paint', dab: 'spray', size: 70, min: 12, max: 320, opacity: 1, flow: 0.85, spacing: 0.12, pSize: 0.2, pFlow: 1, density: 1, buildup: true },
+      { id: 'air-splatter', kind: 'paint', dab: 'splatter', size: 90, min: 20, max: 360, opacity: 1, flow: 1, spacing: 0.5, pSize: 0.3, pFlow: 0 },
     ],
   },
   {
-    id: 'glitter', name: 'Paillettes', icon: 'glitter',
+    id: 'glitter', icon: 'glitter',
     tools: [
-      { id: 'glitter-fine', name: 'Paillettes', kind: 'paint', dab: 'glitter', size: 34, min: 8, max: 140, opacity: 1, flow: 1, spacing: 0.3, pSize: 0.4, pFlow: 0, density: 1 },
-      { id: 'glitter-rainbow', name: 'Paillettes arc-en-ciel', kind: 'paint', dab: 'glitter', rainbow: true, size: 34, min: 8, max: 140, opacity: 1, flow: 1, spacing: 0.3, pSize: 0.4, pFlow: 0, density: 1 },
-      { id: 'glitter-stars', name: 'Étoiles', kind: 'paint', dab: 'stars', size: 50, min: 10, max: 200, opacity: 1, flow: 1, spacing: 0.55, pSize: 0.4, pFlow: 0 },
-      { id: 'glitter-gel', name: 'Gel pailleté', kind: 'paint', dab: 'gel', size: 28, min: 6, max: 120, opacity: 1, flow: 1, spacing: 0.08, pSize: 0.5, pFlow: 0, density: 0.6 },
+      { id: 'glitter-fine', kind: 'paint', dab: 'glitter', size: 34, min: 8, max: 140, opacity: 1, flow: 1, spacing: 0.3, pSize: 0.4, pFlow: 0, density: 1 },
+      { id: 'glitter-rainbow', kind: 'paint', dab: 'glitter', rainbow: true, size: 34, min: 8, max: 140, opacity: 1, flow: 1, spacing: 0.3, pSize: 0.4, pFlow: 0, density: 1 },
+      { id: 'glitter-stars', kind: 'paint', dab: 'stars', size: 50, min: 10, max: 200, opacity: 1, flow: 1, spacing: 0.55, pSize: 0.4, pFlow: 0 },
+      { id: 'glitter-gel', kind: 'paint', dab: 'gel', size: 28, min: 6, max: 120, opacity: 1, flow: 1, spacing: 0.08, pSize: 0.5, pFlow: 0, density: 0.6 },
     ],
   },
   {
-    id: 'blend', name: 'Estompe', icon: 'blend',
+    id: 'blend', icon: 'blend',
     tools: [
-      { id: 'blend-smudge', name: 'Estompe', kind: 'smudge', dab: 'soft50', size: 36, min: 4, max: 200, opacity: 0.75, spacing: 0.08, pSize: 0.3, pFlow: 0.6, pickup: 0.22 },
-      { id: 'blend-finger', name: 'Doigt', kind: 'smudge', dab: 'soft20', size: 28, min: 4, max: 160, opacity: 0.9, spacing: 0.06, pSize: 0.3, pFlow: 0.4, pickup: 0.08 },
-      { id: 'blend-blur', name: 'Flou', kind: 'blur', dab: 'soft20', size: 60, min: 8, max: 260, opacity: 0.6, spacing: 0.15, pSize: 0.2, pFlow: 0.7 },
+      { id: 'blend-smudge', kind: 'smudge', dab: 'soft50', size: 36, min: 4, max: 200, opacity: 0.75, spacing: 0.08, pSize: 0.3, pFlow: 0.6, pickup: 0.22 },
+      { id: 'blend-finger', kind: 'smudge', dab: 'soft20', size: 28, min: 4, max: 160, opacity: 0.9, spacing: 0.06, pSize: 0.3, pFlow: 0.4, pickup: 0.08 },
+      { id: 'blend-blur', kind: 'blur', dab: 'soft20', size: 60, min: 8, max: 260, opacity: 0.6, spacing: 0.15, pSize: 0.2, pFlow: 0.7 },
     ],
   },
   {
-    id: 'eraser', name: 'Gomme', icon: 'eraser',
+    id: 'eraser', icon: 'eraser',
     tools: [
-      { id: 'erase-hard', name: 'Gomme', kind: 'paint', erase: true, dab: 'hard', size: 24, min: 2, max: 240, opacity: 1, flow: 1, spacing: 0.06, pSize: 0.3, pFlow: 0 },
-      { id: 'erase-soft', name: 'Gomme douce', kind: 'paint', erase: true, dab: 'soft0', size: 70, min: 8, max: 320, opacity: 1, flow: 0.18, spacing: 0.06, pSize: 0.2, pFlow: 0.8 },
-      { id: 'erase-kneaded', name: 'Gomme mie de pain', kind: 'paint', erase: true, dab: 'charcoal', size: 30, min: 6, max: 140, opacity: 1, flow: 0.35, spacing: 0.08, pSize: 0.3, pFlow: 0.8, angle: 'random', grain: ['paper', 0.5] },
+      { id: 'erase-hard', kind: 'paint', erase: true, dab: 'hard', size: 24, min: 2, max: 240, opacity: 1, flow: 1, spacing: 0.06, pSize: 0.3, pFlow: 0 },
+      { id: 'erase-soft', kind: 'paint', erase: true, dab: 'soft0', size: 70, min: 8, max: 320, opacity: 1, flow: 0.18, spacing: 0.06, pSize: 0.2, pFlow: 0.8 },
+      { id: 'erase-kneaded', kind: 'paint', erase: true, dab: 'charcoal', size: 30, min: 6, max: 140, opacity: 1, flow: 0.35, spacing: 0.08, pSize: 0.3, pFlow: 0.8, angle: 'random', grain: ['paper', 0.5] },
     ],
   },
   {
-    id: 'fill', name: 'Remplissage', icon: 'fill',
+    id: 'fill', icon: 'fill',
     tools: [
-      { id: 'fill-solid', name: 'Uni', kind: 'fill', fill: 'solid', opacity: 1 },
-      { id: 'fill-linear', name: 'Dégradé', kind: 'fill', fill: 'linear', opacity: 1, drag: true },
-      { id: 'fill-radial', name: 'Dégradé rond', kind: 'fill', fill: 'radial', opacity: 1, drag: true },
-      { id: 'fill-shade', name: 'Ombré', kind: 'fill', fill: 'shade', opacity: 1 },
-      { id: 'fill-texture', name: 'Texture', kind: 'fill', fill: 'texture', opacity: 1 },
-      { id: 'fill-dots', name: 'Pois', kind: 'fill', fill: 'dots', opacity: 1 },
-      { id: 'fill-stripes', name: 'Rayures', kind: 'fill', fill: 'stripes', opacity: 1 },
-      { id: 'fill-check', name: 'Carreaux', kind: 'fill', fill: 'check', opacity: 1 },
+      { id: 'fill-solid', kind: 'fill', fill: 'solid', opacity: 1 },
+      { id: 'fill-linear', kind: 'fill', fill: 'linear', opacity: 1, drag: true },
+      { id: 'fill-radial', kind: 'fill', fill: 'radial', opacity: 1, drag: true },
+      { id: 'fill-shade', kind: 'fill', fill: 'shade', opacity: 1 },
+      { id: 'fill-texture', kind: 'fill', fill: 'texture', opacity: 1 },
+      { id: 'fill-dots', kind: 'fill', fill: 'dots', opacity: 1 },
+      { id: 'fill-stripes', kind: 'fill', fill: 'stripes', opacity: 1 },
+      { id: 'fill-check', kind: 'fill', fill: 'check', opacity: 1 },
     ],
   },
   {
-    id: 'picker', name: 'Pipette', icon: 'picker',
-    tools: [{ id: 'picker', name: 'Pipette', kind: 'picker' }],
+    id: 'picker', icon: 'picker',
+    tools: [{ id: 'picker', kind: 'picker' }],
   },
 ];
 
+// Noms affichés : lus dans la langue courante (voir i18n.js).
+const named = (o, prefix) => Object.defineProperty(o, 'name', { get: () => tr(prefix + o.id), enumerable: true });
+
 export const TOOLS = {};
-for (const g of GROUPS) for (const t of g.tools) { t.group = g.id; TOOLS[t.id] = t; }
+for (const g of GROUPS) {
+  named(g, 'group.');
+  for (const t of g.tools) {
+    t.group = g.id;
+    TOOLS[t.id] = named(t, 'tool.');
+  }
+}
 
 /* ---------- Empreintes de pointe ---------- */
 
@@ -250,19 +260,21 @@ export function paperTile(tex, strength) {
 /* ---------- Papiers ---------- */
 
 export const PAPERS = [
-  { id: 'white', name: 'Blanc', color: '#ffffff' },
-  { id: 'cream', name: 'Crème', color: '#fbf5e9' },
-  { id: 'grain', name: 'Grain', color: '#ffffff', tex: 'paper', strength: 0.1 },
-  { id: 'water', name: 'Aquarelle', color: '#fcf8f0', tex: 'rough', strength: 0.12 },
-  { id: 'kraft', name: 'Kraft', color: '#dcc6a2', tex: 'rough', strength: 0.14 },
-  { id: 'grey', name: 'Gris', color: '#e7e6e3', tex: 'paper', strength: 0.08 },
+  { id: 'white', color: '#ffffff' },
+  { id: 'cream', color: '#fbf5e9' },
+  { id: 'grain', color: '#ffffff', tex: 'paper', strength: 0.1 },
+  { id: 'water', color: '#fcf8f0', tex: 'rough', strength: 0.12 },
+  { id: 'kraft', color: '#dcc6a2', tex: 'rough', strength: 0.14 },
+  { id: 'grey', color: '#e7e6e3', tex: 'paper', strength: 0.08 },
 ];
+PAPERS.forEach((p) => named(p, 'paper.'));
 export const paperById = (id) => PAPERS.find((p) => p.id === id) || PAPERS[0];
 
 export const LINE_COLORS = [
-  { id: 'black', name: 'Noir', color: '#1d1b1a' },
-  { id: 'sepia', name: 'Sépia', color: '#5a3d2b' },
-  { id: 'grey', name: 'Gris', color: '#8a8580' },
-  { id: 'navy', name: 'Bleu nuit', color: '#1f2d4d' },
+  { id: 'black', color: '#1d1b1a' },
+  { id: 'sepia', color: '#5a3d2b' },
+  { id: 'grey', color: '#8a8580' },
+  { id: 'navy', color: '#1f2d4d' },
 ];
+LINE_COLORS.forEach((p) => named(p, 'line.'));
 export const lineColorById = (id) => LINE_COLORS.find((p) => p.id === id) || LINE_COLORS[0];

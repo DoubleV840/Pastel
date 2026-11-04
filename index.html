@@ -20,11 +20,14 @@
   <section id="gallery">
     <header class="g-head">
       <div class="brand"><span id="g-logo" class="logo"></span><h1>Pastel</h1></div>
-      <nav id="g-tabs" class="seg">
-        <button data-tab="mine">Mes dessins</button>
-        <button data-tab="pages">Coloriages</button>
-        <button data-tab="create">Créer</button>
-      </nav>
+      <div class="g-right">
+        <nav id="g-tabs" class="seg">
+          <button data-tab="mine" data-i18n="tab.mine">Mes dessins</button>
+          <button data-tab="pages" data-i18n="tab.pages">Coloriages</button>
+          <button data-tab="create" data-i18n="tab.create">Créer</button>
+        </nav>
+        <button id="g-lang" class="icon-btn" aria-label="Langue" data-i18n-aria="lang.title"></button>
+      </div>
     </header>
     <main id="g-main"></main>
   </section>
@@ -43,31 +46,31 @@
 
     <header id="ed-top">
       <div class="pill">
-        <button id="ed-back" class="icon-btn" aria-label="Retour à la galerie"></button>
-        <button id="ed-undo" class="icon-btn" aria-label="Annuler" disabled></button>
-        <button id="ed-redo" class="icon-btn" aria-label="Rétablir" disabled></button>
+        <button id="ed-back" class="icon-btn" aria-label="Retour à la galerie" data-i18n-aria="ed.back"></button>
+        <button id="ed-undo" class="icon-btn" aria-label="Annuler" data-i18n-aria="ed.undo" disabled></button>
+        <button id="ed-redo" class="icon-btn" aria-label="Rétablir" data-i18n-aria="ed.redo" disabled></button>
       </div>
-      <button id="ed-title" class="title-btn" aria-label="Renommer"></button>
+      <button id="ed-title" class="title-btn" aria-label="Renommer" data-i18n-aria="ed.rename"></button>
       <div class="pill">
-        <button id="ed-inside" class="toggle" aria-label="Rester dans les traits"><span>Dans les traits</span></button>
-        <button id="ed-lines" class="toggle" aria-label="Afficher les traits"><span>Traits</span></button>
-        <button id="ed-share" class="icon-btn" aria-label="Exporter"></button>
-        <button id="ed-settings" class="icon-btn" aria-label="Réglages"></button>
+        <button id="ed-inside" class="toggle" aria-label="Rester dans les traits" data-i18n-aria="ed.inside.aria"><span data-i18n="ed.inside">Dans les traits</span></button>
+        <button id="ed-lines" class="toggle" aria-label="Afficher les traits" data-i18n-aria="ed.lines.aria"><span data-i18n="ed.lines">Traits</span></button>
+        <button id="ed-share" class="icon-btn" aria-label="Exporter" data-i18n-aria="ed.export"></button>
+        <button id="ed-settings" class="icon-btn" aria-label="Réglages" data-i18n-aria="ed.settings"></button>
       </div>
     </header>
 
     <div id="ed-sliders">
       <div class="vslider" id="sl-size">
         <div class="track"><div class="fill"></div><div class="thumb"></div></div>
-        <span class="lbl">Taille</span><span class="bubble"></span>
+        <span class="lbl" data-i18n="slider.size">Taille</span><span class="bubble"></span>
       </div>
       <div class="vslider" id="sl-opacity">
         <div class="track"><div class="fill"></div><div class="thumb"></div></div>
-        <span class="lbl">Opacité</span><span class="bubble"></span>
+        <span class="lbl" data-i18n="slider.opacity">Opacité</span><span class="bubble"></span>
       </div>
     </div>
 
-    <nav id="dock" aria-label="Outils"></nav>
+    <nav id="dock" aria-label="Outils" data-i18n-aria="dock"></nav>
     <div id="tool-pop" class="popover" hidden></div>
     <div id="color-pop" class="popover" hidden></div>
     <button id="zoom-badge" hidden></button>

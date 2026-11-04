@@ -27,6 +27,9 @@ Pensée pour l'Apple Pencil : pression, inclinaison (ombrage au crayon), survol.
   (partage iPad → « Enregistrer l'image » dans Photos), avec ou sans traits/papier.
 - Enregistrement automatique sur l'appareil (IndexedDB), rien n'est envoyé.
 
+- **3 langues** : français, anglais, espagnol d'Amérique latine. Détectée selon la
+  langue de l'iPad, modifiable par le globe de l'accueil ou dans Réglages.
+
 Doigt : en mode « Auto », le doigt dessine tant qu'aucun Apple Pencil n'a été
 utilisé ; ensuite il sert à zoomer et déplacer (appui long = pipette). Réglable.
 
@@ -61,5 +64,6 @@ Changer `CACHE` dans `sw.js` seulement si la liste des fichiers change.
 - `js/regions.js`, `js/fill.js` : zones fermées, remplissages.
 - `js/pages.js` : générateurs de coloriages. `js/lineart.js` : image/photo → traits.
 - `js/editor.js` : écran de dessin (saisie, gestes, historique, export).
+- `js/i18n.js` : traductions (fr, en, es-419).
 - `js/gallery.js` : accueil. `js/colorpicker.js` : couleurs. `js/store.js` : IndexedDB.
 - `sw.js`, `manifest.webmanifest`, `icons/` : installation en appli.

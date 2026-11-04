@@ -3,19 +3,21 @@
 // les formes remplies de blanc masquent celles de derrière (ordre du peintre).
 
 import { rng, TAU, clamp, makeCanvas } from './util.js';
+import { t } from './i18n.js';
 
 export const PAGE_KINDS = [
-  { id: 'mandala', name: 'Mandalas', w: 1000, h: 1000 },
-  { id: 'flowers', name: 'Fleurs', w: 1000, h: 1333 },
-  { id: 'butterflies', name: 'Papillons', w: 1000, h: 1333 },
-  { id: 'ocean', name: 'Océan', w: 1000, h: 1333 },
-  { id: 'landscape', name: 'Paysages', w: 1333, h: 1000 },
-  { id: 'kaleido', name: 'Kaléidoscopes', w: 1000, h: 1000 },
-  { id: 'glass', name: 'Vitraux', w: 1000, h: 1000 },
-  { id: 'geo', name: 'Géométrie', w: 1000, h: 1000 },
-  { id: 'motifs', name: 'Motifs', w: 1000, h: 1000 },
-  { id: 'abstract', name: 'Abstrait', w: 1000, h: 1333 },
+  { id: 'mandala', w: 1000, h: 1000 },
+  { id: 'flowers', w: 1000, h: 1333 },
+  { id: 'butterflies', w: 1000, h: 1333 },
+  { id: 'ocean', w: 1000, h: 1333 },
+  { id: 'landscape', w: 1333, h: 1000 },
+  { id: 'kaleido', w: 1000, h: 1000 },
+  { id: 'glass', w: 1000, h: 1000 },
+  { id: 'geo', w: 1000, h: 1000 },
+  { id: 'motifs', w: 1000, h: 1000 },
+  { id: 'abstract', w: 1000, h: 1333 },
 ];
+for (const k of PAGE_KINDS) Object.defineProperty(k, 'name', { get: () => t('kind.' + k.id), enumerable: true });
 export const kindById = (id) => PAGE_KINDS.find((k) => k.id === id) || PAGE_KINDS[0];
 
 const LW = 2.6;

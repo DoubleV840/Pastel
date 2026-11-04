@@ -5,21 +5,22 @@
 import { S, saveSettings } from './settings.js';
 import { ICONS } from './icons.js';
 import { el, $, clamp, hexHsv, hsvHex, normHex, TAU } from './util.js';
+import { t } from './i18n.js';
 
 export const PALETTES = [
-  ['Douceur', ['#f7c5cc', '#f9d9b8', '#fbf0b3', '#cdeac0', '#b8e0e8', '#c9c6f0', '#e8c6ec', '#f4f1ea']],
-  ['Printemps', ['#ff8fab', '#ffb3c6', '#ffe066', '#a7d676', '#5fb49c', '#6cc4dc', '#b79ced', '#fff1e6']],
-  ['Arc-en-ciel', ['#e53935', '#fb8c00', '#fdd835', '#43a047', '#1e88e5', '#3949ab', '#8e24aa', '#d81b60']],
-  ['Océan', ['#03396c', '#005b96', '#2a7fba', '#63aed6', '#9ed3e6', '#d3f0f5', '#1f6f6f', '#f2e8cf']],
-  ['Coucher de soleil', ['#2b1d4e', '#6a2c70', '#b83b5e', '#f08a5d', '#ffb26b', '#f9ed69', '#ff7b54', '#ffd56b']],
-  ['Forêt', ['#1b3a2f', '#2f5d3a', '#4f7d3a', '#8aa65a', '#c9cf8f', '#6b4e2e', '#a47148', '#e9dcc0']],
-  ['Bonbons', ['#ff5d8f', '#ff97b7', '#ffcad4', '#9b5de5', '#00bbf9', '#00f5d4', '#fee440', '#f15bb5']],
-  ['Terre', ['#5b3a29', '#8c5a3c', '#b97a56', '#d9a066', '#e6c79c', '#a3a380', '#6b705c', '#3f3a36']],
-  ['Vintage', ['#264653', '#2a9d8f', '#e9c46a', '#f4a261', '#e76f51', '#8d6e63', '#d6ccc2', '#edede9']],
-  ['Néon', ['#ff00a0', '#ff6b00', '#fff200', '#39ff14', '#00f0ff', '#6a00ff', '#ff2e63', '#08f7fe']],
-  ['Nuit', ['#0d1b2a', '#1b263b', '#415a77', '#778da9', '#e0e1dd', '#5e548e', '#9f86c0', '#e0b1cb']],
-  ['Carnations', ['#ffe0c7', '#ffdbac', '#f1c27d', '#e0ac69', '#c68642', '#8d5524', '#5c3317', '#3b2219']],
-  ['Gris', ['#000000', '#2e2e2e', '#555555', '#7b7b7b', '#a3a3a3', '#c8c8c8', '#e6e6e6', '#ffffff']],
+  ['soft', ['#f7c5cc', '#f9d9b8', '#fbf0b3', '#cdeac0', '#b8e0e8', '#c9c6f0', '#e8c6ec', '#f4f1ea']],
+  ['spring', ['#ff8fab', '#ffb3c6', '#ffe066', '#a7d676', '#5fb49c', '#6cc4dc', '#b79ced', '#fff1e6']],
+  ['rainbow', ['#e53935', '#fb8c00', '#fdd835', '#43a047', '#1e88e5', '#3949ab', '#8e24aa', '#d81b60']],
+  ['ocean', ['#03396c', '#005b96', '#2a7fba', '#63aed6', '#9ed3e6', '#d3f0f5', '#1f6f6f', '#f2e8cf']],
+  ['sunset', ['#2b1d4e', '#6a2c70', '#b83b5e', '#f08a5d', '#ffb26b', '#f9ed69', '#ff7b54', '#ffd56b']],
+  ['forest', ['#1b3a2f', '#2f5d3a', '#4f7d3a', '#8aa65a', '#c9cf8f', '#6b4e2e', '#a47148', '#e9dcc0']],
+  ['candy', ['#ff5d8f', '#ff97b7', '#ffcad4', '#9b5de5', '#00bbf9', '#00f5d4', '#fee440', '#f15bb5']],
+  ['earth', ['#5b3a29', '#8c5a3c', '#b97a56', '#d9a066', '#e6c79c', '#a3a380', '#6b705c', '#3f3a36']],
+  ['vintage', ['#264653', '#2a9d8f', '#e9c46a', '#f4a261', '#e76f51', '#8d6e63', '#d6ccc2', '#edede9']],
+  ['neon', ['#ff00a0', '#ff6b00', '#fff200', '#39ff14', '#00f0ff', '#6a00ff', '#ff2e63', '#08f7fe']],
+  ['night', ['#0d1b2a', '#1b263b', '#415a77', '#778da9', '#e0e1dd', '#5e548e', '#9f86c0', '#e0b1cb']],
+  ['skin', ['#ffe0c7', '#ffdbac', '#f1c27d', '#e0ac69', '#c68642', '#8d5524', '#5c3317', '#3b2219']],
+  ['grey', ['#000000', '#2e2e2e', '#555555', '#7b7b7b', '#a3a3a3', '#c8c8c8', '#e6e6e6', '#ffffff']],
 ];
 
 export class ColorPanel {
@@ -45,14 +46,14 @@ export class ColorPanel {
     const dpr = Math.min(2, devicePixelRatio || 1);
     this.size = 248;
     this.root.innerHTML = '';
-    this.c1 = el('button', { class: 'cp-sw', 'aria-label': 'Couleur principale', onclick: () => this.pick('color') });
-    this.c2 = el('button', { class: 'cp-sw small', 'aria-label': 'Seconde couleur (dégradés, motifs)', onclick: () => this.pick('color2') });
-    this.hex = el('input', { class: 'cp-hex', maxlength: 7, spellcheck: 'false', autocomplete: 'off', 'aria-label': 'Code couleur' });
+    this.c1 = el('button', { class: 'cp-sw', 'aria-label': t('cp.main'), onclick: () => this.pick('color') });
+    this.c2 = el('button', { class: 'cp-sw small', 'aria-label': t('cp.second'), onclick: () => this.pick('color2') });
+    this.hex = el('input', { class: 'cp-hex', maxlength: 7, spellcheck: 'false', autocomplete: 'off', 'aria-label': t('cp.hex') });
     this.hex.addEventListener('change', () => {
       const h = normHex(this.hex.value);
       if (h) this.set(h); else this.hex.value = this.value;
     });
-    const swap = el('button', { class: 'icon-btn sm', 'aria-label': 'Inverser les deux couleurs', html: ICONS.swap, onclick: () => {
+    const swap = el('button', { class: 'icon-btn sm', 'aria-label': t('cp.swap'), html: ICONS.swap, onclick: () => {
       [S.color, S.color2] = [S.color2, S.color];
       saveSettings();
       [this.h, this.s, this.v] = hexHsv(this.value);
@@ -62,16 +63,16 @@ export class ColorPanel {
     const head = el('div', { class: 'cp-head' }, el('div', { class: 'cp-pair' }, this.c1, this.c2), swap, this.hex);
 
     this.tabs = el('div', { class: 'seg' },
-      el('button', { 'data-tab': 'wheel', onclick: () => this.showTab('wheel') }, 'Roue'),
-      el('button', { 'data-tab': 'palettes', onclick: () => this.showTab('palettes') }, 'Palettes'));
+      el('button', { 'data-tab': 'wheel', onclick: () => this.showTab('wheel') }, t('cp.wheel')),
+      el('button', { 'data-tab': 'palettes', onclick: () => this.showTab('palettes') }, t('cp.palettes')));
 
     this.wheel = el('canvas', { class: 'cp-wheel', width: this.size * dpr, height: this.size * dpr, style: `width:${this.size}px;height:${this.size}px` });
     this.wheel.getContext('2d').scale(dpr, dpr);
     this.harm = el('div', { class: 'swatches' });
-    this.wheelPane = el('div', { class: 'cp-pane' }, this.wheel, el('p', { class: 'cp-label' }, 'Harmonies'), this.harm);
+    this.wheelPane = el('div', { class: 'cp-pane' }, this.wheel, el('p', { class: 'cp-label' }, t('cp.harmonies')), this.harm);
     this.palPane = el('div', { class: 'cp-pane cp-pal' });
     this.recent = el('div', { class: 'swatches' });
-    this.root.append(head, this.tabs, this.wheelPane, this.palPane, el('p', { class: 'cp-label' }, 'Récentes'), this.recent);
+    this.root.append(head, this.tabs, this.wheelPane, this.palPane, el('p', { class: 'cp-label' }, t('cp.recent')), this.recent);
     this.bindWheel();
   }
 
@@ -106,7 +107,7 @@ export class ColorPanel {
       let t;
       b.addEventListener('pointerdown', () => {
         t = setTimeout(() => {
-          if (confirm('Retirer cette couleur de « Mes couleurs » ?')) {
+          if (confirm(t('cp.remove'))) {
             S.custom = S.custom.filter((x) => x !== c);
             saveSettings();
             this.renderPalettes();
@@ -116,14 +117,14 @@ export class ColorPanel {
       for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) b.addEventListener(ev, () => clearTimeout(t));
       mine.append(b);
     }
-    mine.append(el('button', { class: 'sw add', 'aria-label': 'Ajouter la couleur actuelle', html: ICONS.plus, onclick: () => {
+    mine.append(el('button', { class: 'sw add', 'aria-label': t('cp.add'), html: ICONS.plus, onclick: () => {
       if (!S.custom.includes(this.value)) S.custom = [...S.custom, this.value].slice(-24);
       saveSettings();
       this.renderPalettes();
     } }));
     this.palPane.replaceChildren(
-      el('p', { class: 'cp-label' }, 'Mes couleurs ', el('span', { class: 'hint' }, '(appui long pour retirer)')), mine,
-      ...PALETTES.flatMap(([name, cols]) => [el('p', { class: 'cp-label' }, name), el('div', { class: 'swatches' }, cols.map((c) => this.swatch(c)))]),
+      el('p', { class: 'cp-label' }, t('cp.mine') + ' ', el('span', { class: 'hint' }, t('cp.mine.hint'))), mine,
+      ...PALETTES.flatMap(([name, cols]) => [el('p', { class: 'cp-label' }, t('pal.' + name)), el('div', { class: 'swatches' }, cols.map((c) => this.swatch(c)))]),
     );
   }
 
@@ -133,7 +134,7 @@ export class ColorPanel {
     this.c1.classList.toggle('on', this.target === 'color');
     this.c2.classList.toggle('on', this.target === 'color2');
     if (document.activeElement !== this.hex) this.hex.value = this.value;
-    this.recent.replaceChildren(...(S.recent.length ? S.recent.map((c) => this.swatch(c)) : [el('span', { class: 'hint' }, 'Les couleurs utilisées apparaîtront ici.')]));
+    this.recent.replaceChildren(...(S.recent.length ? S.recent.map((c) => this.swatch(c)) : [el('span', { class: 'hint' }, t('cp.recent.empty'))]));
     if (this.tab === 'wheel') {
       this.drawWheel();
       const h = this.h, s = this.s, v = this.v;

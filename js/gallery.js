@@ -9,6 +9,7 @@ import { PAPERS, paperById } from './brushes.js';
 import { ICONS } from './icons.js';
 import { busy, sheet, menu, segmented, field, range, check, pickImage } from './ui.js';
 import { $, $$, el, makeCanvas, freeCanvas, canvasToBlob, loadImage, toast, nextFrame, uid, debounce } from './util.js';
+import { t, locale, LANGS, lang, setLang } from './i18n.js';
 
 let openArt;
 let tab = null;
@@ -52,11 +53,10 @@ export async function refreshGallery() {
 
 /* ---------- Mes dessins ---------- */
 
-const dateFmt = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' });
 function when(ts) {
   const d = new Date(ts), today = new Date();
-  if (d.toDateString() === today.toDateString()) return 'Aujourd’hui ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-  return dateFmt.format(d);
+  if (d.toDateString() === today.toDateString()) return t('today', { time: d.toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit' }) });
+  return new Intl.DateTimeFormat(locale(), { day: 'numeric', month: 'short' }).format(d);
 }
 
 async function renderMine() {
@@ -67,11 +67,11 @@ async function renderMine() {
   if (!mine.length) {
     main().replaceChildren(el('div', { class: 'empty' },
       el('div', { class: 'empty-art', html: ICONS.palette }),
-      el('h2', {}, 'Aucun dessin pour l’instant'),
-      el('p', {}, 'Choisis une page de coloriage, importe un dessin ou pars d’une toile vierge.'),
+      el('h2', {}, t('empty.title')),
+      el('p', {}, t('empty.text')),
       el('div', { class: 'row-btns' },
-        el('button', { class: 'btn primary', onclick: () => showTab('pages') }, 'Voir les coloriages'),
-        el('button', { class: 'btn', onclick: () => showTab('create') }, 'Créer'))));
+        el('button', { class: 'btn primary', onclick: () => showTab('pages') }, t('empty.pages')),
+        el('button', { class: 'btn', onclick: () => showTab('create') }, t('tab.create')))));
     return;
   }
   const grid = el('div', { class: 'grid' });
@@ -79,11 +79,11 @@ async function renderMine() {
     const url = rec.thumb ? URL.createObjectURL(rec.thumb) : '';
     if (url) urls.push(url);
     const card = el('div', { class: 'card' },
-      el('button', { class: 'thumb', style: `aspect-ratio:${rec.w}/${rec.h}`, 'aria-label': 'Ouvrir ' + rec.name, onclick: () => openArt(rec) },
+      el('button', { class: 'thumb', style: `aspect-ratio:${rec.w}/${rec.h}`, 'aria-label': rec.name, onclick: () => openArt(rec) },
         url ? el('img', { src: url, alt: '' }) : null),
       el('div', { class: 'meta' },
         el('div', {}, el('b', {}, rec.name), el('span', {}, when(rec.updated))),
-        el('button', { class: 'icon-btn sm', 'aria-label': 'Options', html: ICONS.more, onclick: () => cardMenu(rec) })));
+        el('button', { class: 'icon-btn sm', 'aria-label': t('menu.open'), html: ICONS.more, onclick: () => cardMenu(rec) })));
     grid.append(card);
   }
   main().replaceChildren(grid);
@@ -91,17 +91,17 @@ async function renderMine() {
 
 function cardMenu(rec) {
   menu(rec.name, [
-    { label: 'Ouvrir', icon: 'edit', onClick: () => openArt(rec) },
-    { label: 'Renommer', icon: 'page', onClick: async () => {
-      const n = prompt('Nom du dessin', rec.name);
+    { label: t('menu.open'), icon: 'edit', onClick: () => openArt(rec) },
+    { label: t('menu.rename'), icon: 'page', onClick: async () => {
+      const n = prompt(t('prompt.name'), rec.name);
       if (n && n.trim()) { rec.name = n.trim().slice(0, 60); await store.put(rec, false); renderMine(); }
     } },
-    { label: 'Dupliquer', icon: 'copy', onClick: async () => {
-      await store.duplicate(rec, rec.name + ' (copie)');
+    { label: t('menu.duplicate'), icon: 'copy', onClick: async () => {
+      await store.duplicate(rec, t('copy.name', { name: rec.name }));
       renderMine();
     } },
-    { label: 'Supprimer', icon: 'trash', danger: true, onClick: async () => {
-      if (!confirm(`Supprimer « ${rec.name} » ? C’est définitif.`)) return;
+    { label: t('menu.delete'), icon: 'trash', danger: true, onClick: async () => {
+      if (!confirm(t('confirm.delete', { name: rec.name }))) return;
       await store.del(rec.id);
       renderMine();
     } },
@@ -153,11 +153,11 @@ function renderPages() {
   const count = shown[kind.id] || 24;
   for (let num = 1; num <= count; num++) {
     const box = el('div', { class: 'page-box', style: `aspect-ratio:${kind.w}/${kind.h}`, 'data-kind': kind.id, 'data-num': num });
-    grid.append(el('button', { class: 'page-card', 'data-key': kind.id + ':' + num, 'aria-label': `${kind.name} n°${num}`, onclick: () => pageTap(kind, num) },
-      box, el('span', { class: 'page-num' }, 'n°' + num), el('span', { class: 'badge' }, 'En cours')));
+    grid.append(el('button', { class: 'page-card', 'data-key': kind.id + ':' + num, 'aria-label': t('page.title', { kind: kind.name, n: num }), onclick: () => pageTap(kind, num) },
+      box, el('span', { class: 'page-num' }, t('page.num', { n: num })), el('span', { class: 'badge' }, t('page.started'))));
     observer.observe(box);
   }
-  const more = el('button', { class: 'btn more-btn', onclick: () => { shown[kind.id] = count + 24; const y = main().scrollTop; renderPages(); main().scrollTop = y; } }, 'Afficher plus de pages');
+  const more = el('button', { class: 'btn more-btn', onclick: () => { shown[kind.id] = count + 24; const y = main().scrollTop; renderPages(); main().scrollTop = y; } }, t('page.more'));
   main().replaceChildren(chips, grid, more);
   markStarted();
 }
@@ -165,18 +165,18 @@ function renderPages() {
 function pageTap(kind, num) {
   const existing = mine.filter((r) => r.source && r.source.kind === kind.id && r.source.num === num);
   if (!existing.length) return createFromPage(kind, num);
-  menu(`${kind.name} n°${num}`, [
-    { label: 'Continuer mon coloriage', icon: 'edit', onClick: () => openArt(existing[0]) },
-    { label: 'Nouvelle copie à colorier', icon: 'plus', onClick: () => createFromPage(kind, num) },
+  menu(t('page.title', { kind: kind.name, n: num }), [
+    { label: t('page.continue'), icon: 'edit', onClick: () => openArt(existing[0]) },
+    { label: t('page.newcopy'), icon: 'plus', onClick: () => createFromPage(kind, num) },
   ]);
 }
 
 async function createFromPage(kind, num) {
-  busy('Préparation de la page…');
+  busy(t('busy.page'));
   await nextFrame();
   try {
     const c = toLineArt(renderPage(kind.id, num, 2048));
-    const rec = baseRec({ name: `${kind.name} n°${num}`, w: c.width, h: c.height, kind: 'page', source: { kind: kind.id, num } });
+    const rec = baseRec({ name: t('page.title', { kind: kind.name, n: num }), w: c.width, h: c.height, kind: 'page', source: { kind: kind.id, num } });
     rec.lines = await canvasToBlob(c);
     rec.thumb = await thumbOf(c);
     await store.put(rec);
@@ -184,7 +184,7 @@ async function createFromPage(kind, num) {
     await openArt(rec, { lines: c });
   } catch (err) {
     busy(null);
-    toast('Erreur : ' + err.message, 4000);
+    toast(t('error', { msg: err.message }), 4000);
   }
 }
 
@@ -194,10 +194,10 @@ function renderCreate() {
   const card = (icon, title, text, onClick) => el('button', { class: 'create-card', onclick: onClick },
     el('span', { class: 'create-icon', html: ICONS[icon] }), el('b', {}, title), el('span', {}, text));
   main().replaceChildren(el('div', { class: 'create-grid' },
-    card('page', 'Toile vierge', 'Dessin libre sur une feuille blanche, crème, kraft…', blankSheet),
-    card('image', 'Importer un dessin', 'Un coloriage trouvé sur le web, scanné ou photographié.', importDrawing),
-    card('camera', 'Photo → coloriage', 'Transforme une de tes photos en dessin à colorier.', importPhoto),
-    card('sparkle', 'Page surprise', 'Une page de coloriage tirée au hasard.', () => {
+    card('page', t('create.blank'), t('create.blank.text'), blankSheet),
+    card('image', t('create.import'), t('create.import.text'), importDrawing),
+    card('camera', t('create.photo'), t('create.photo.text'), importPhoto),
+    card('sparkle', t('create.surprise'), t('create.surprise.text'), () => {
       const k = PAGE_KINDS[(Math.random() * PAGE_KINDS.length) | 0];
       createFromPage(k, 1 + ((Math.random() * 500) | 0));
     })));
@@ -211,12 +211,12 @@ function blankSheet() {
   }, el('i', { style: `background:${p.color}` }), p.name)));
   drawPapers();
   const body = el('div', { class: 'form' },
-    field('Format', segmented([['portrait', 'Portrait'], ['landscape', 'Paysage'], ['square', 'Carré'], ['screen', 'Écran']], fmt, (v) => { fmt = v; })),
-    field('Papier', papers));
+    field(t('field.format'), segmented(['portrait', 'landscape', 'square', 'screen'].map((f) => [f, t('fmt.' + f)]), fmt, (v) => { fmt = v; })),
+    field(t('field.paper'), papers));
   sheet({
-    title: 'Toile vierge', body,
+    title: t('create.blank'), body,
     actions: [{
-      label: 'Créer', primary: true,
+      label: t('btn.create'), primary: true,
       onClick: async (close) => {
         close();
         const ratio = innerWidth / innerHeight;
@@ -224,7 +224,7 @@ function blankSheet() {
           portrait: [1536, 2048], landscape: [2048, 1536], square: [2048, 2048],
           screen: ratio < 1 ? [Math.round(2048 * ratio), 2048] : [2048, Math.round(2048 / ratio)],
         }[fmt];
-        const rec = baseRec({ name: 'Dessin libre', w, h, kind: 'blank', paper });
+        const rec = baseRec({ name: t('name.blank'), w, h, kind: 'blank', paper });
         rec.thumb = await thumbOf(null, paper, w, h);
         await store.put(rec);
         openArt(rec);
@@ -241,11 +241,11 @@ function baseName(file, fallback) {
 async function readImage() {
   const file = await pickImage();
   if (!file) return null;
-  busy('Lecture de l’image…');
+  busy(t('busy.read'));
   try {
     return { file, img: await loadImage(file) };
   } catch {
-    toast('Image illisible (formats acceptés : JPG, PNG, HEIC depuis Photos).', 4000);
+    toast(t('err.image'), 4000);
     return null;
   } finally {
     busy(null);
@@ -267,7 +267,7 @@ function showPreview(pv, lines) {
 }
 
 async function finishImport(make, o) {
-  busy('Création du coloriage…');
+  busy(t('busy.creating'));
   await nextFrame();
   try {
     const c = make(2048);
@@ -279,7 +279,7 @@ async function finishImport(make, o) {
     await openArt(rec, { lines: c });
   } catch (err) {
     busy(null);
-    toast('Erreur : ' + err.message, 4000);
+    toast(t('error', { msg: err.message }), 4000);
   }
 }
 
@@ -291,16 +291,16 @@ async function importDrawing() {
   const pv = previewCanvas();
   const draw = debounce(() => showPreview(pv, imageToLineArt(img, 720, { level })), 80);
   const body = el('div', { class: 'form' }, pv,
-    field('Traits : clairs ← → appuyés', range({ min: 0, max: 100, value: 50, onInput: (v) => { level = v / 100; draw(); } })),
-    check('Fermer les petites ouvertures des traits (remplissage plus sûr)', closeGaps, (v) => { closeGaps = v; }),
-    el('p', { class: 'hint' }, 'Idéal : un dessin au trait noir sur fond blanc. Les couleurs de l’image sont ignorées.'));
+    field(t('import.lines'), range({ min: 0, max: 100, value: 50, onInput: (v) => { level = v / 100; draw(); } })),
+    check(t('import.gaps'), closeGaps, (v) => { closeGaps = v; }),
+    el('p', { class: 'hint' }, t('import.hint')));
   sheet({
-    title: 'Importer un dessin', body, wide: true,
+    title: t('create.import'), body, wide: true,
     actions: [{ label: 'Annuler' }, {
-      label: 'Colorier ce dessin', primary: true,
+      label: t('import.go'), primary: true,
       onClick: (close) => {
         close();
-        finishImport((long) => imageToLineArt(img, long, { level }), { name: baseName(file, 'Dessin importé'), kind: 'import', closeGaps });
+        finishImport((long) => imageToLineArt(img, long, { level }), { name: baseName(file, t('name.import')), kind: 'import', closeGaps });
       },
     }],
   });
@@ -315,27 +315,27 @@ async function importPhoto() {
   const pv = previewCanvas(), note = el('p', { class: 'hint' });
   const make = (long) => (style === 'zones' ? photoToZones : photoToContours)(img, long, { detail, thickness });
   const draw = debounce(async () => {
-    note.textContent = 'Calcul…';
+    note.textContent = t('photo.calc');
     await nextFrame();
     showPreview(pv, make(640));
     note.textContent = style === 'zones'
-      ? 'Zones : des formes fermées, prêtes pour le remplissage par toucher.'
-      : 'Contours : un rendu façon croquis, à colorier au crayon ou au pinceau.';
+      ? t('photo.zones.hint')
+      : t('photo.contours.hint');
   }, 150);
   const body = el('div', { class: 'form' }, pv, note,
-    field('Style', segmented([['zones', 'Zones'], ['contours', 'Contours']], style, (v) => { style = v; draw(); })),
-    field('Détails', range({ min: 1, max: 10, value: detail, onInput: (v) => { detail = v; draw(); } })),
-    field('Épaisseur des traits', range({ min: 1, max: 5, value: thickness, onInput: (v) => { thickness = v; draw(); } })));
+    field(t('photo.style'), segmented([['zones', t('photo.zones')], ['contours', t('photo.contours')]], style, (v) => { style = v; draw(); })),
+    field(t('photo.detail'), range({ min: 1, max: 10, value: detail, onInput: (v) => { detail = v; draw(); } })),
+    field(t('photo.thickness'), range({ min: 1, max: 5, value: thickness, onInput: (v) => { thickness = v; draw(); } })));
   const [w, h] = fitSize(img.naturalWidth, img.naturalHeight, 640);
   pv.width = w;
   pv.height = h;
   sheet({
-    title: 'Photo → coloriage', body, wide: true,
+    title: t('create.photo'), body, wide: true,
     actions: [{ label: 'Annuler' }, {
-      label: 'Colorier cette photo', primary: true,
+      label: t('photo.go'), primary: true,
       onClick: (close) => {
         close();
-        finishImport(make, { name: baseName(file, 'Photo à colorier'), kind: 'photo', closeGaps: style === 'contours' });
+        finishImport(make, { name: baseName(file, t('name.photo')), kind: 'photo', closeGaps: style === 'contours' });
       },
     }],
   });
@@ -347,6 +347,11 @@ async function importPhoto() {
 export async function initGallery({ open }) {
   openArt = open;
   $('#g-logo').innerHTML = ICONS.palette;
+  $('#g-lang').innerHTML = ICONS.globe;
+  $('#g-lang').onclick = () => menu(t('lang.title'), LANGS.map(([id, label]) => ({
+    label: label + (id === lang ? '  ✓' : ''), icon: 'globe', onClick: () => setLang(id),
+  })));
+  addEventListener('langchange', () => showTab(tab));
   for (const b of $$('#g-tabs button')) b.onclick = () => showTab(b.dataset.tab);
   mine = await store.all().catch(() => []);
   showTab(mine.length ? 'mine' : 'pages');
