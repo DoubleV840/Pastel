@@ -12,19 +12,19 @@ export const GROUPS = [
   {
     id: 'pencil', icon: 'pencil',
     tools: [
-      { id: 'pencil-color', kind: 'paint', dab: 'pencil', size: 10, min: 2, max: 48, opacity: 1, flow: 0.38, spacing: 0.12, pSize: 0.35, pFlow: 0.9, grain: ['paper', 0.7], tilt: true, angle: 'random' },
-      { id: 'pencil-fine', kind: 'paint', dab: 'pencil', size: 4, min: 1, max: 16, opacity: 1, flow: 0.55, spacing: 0.15, pSize: 0.2, pFlow: 0.85, grain: ['paper', 0.45], tilt: true, angle: 'random' },
-      { id: 'pencil-soft', kind: 'paint', dab: 'pencil', size: 18, min: 4, max: 64, opacity: 1, flow: 0.42, spacing: 0.1, pSize: 0.4, pFlow: 0.8, grain: ['rough', 0.6], tilt: true, angle: 'random' },
-      { id: 'pencil-sketch', kind: 'paint', dab: 'pencil', size: 6, min: 1, max: 24, opacity: 0.85, flow: 0.22, spacing: 0.12, pSize: 0.25, pFlow: 1, grain: ['paper', 0.55], tilt: true, angle: 'random' },
+      { id: 'pencil-color', kind: 'paint', dab: 'pencil', size: 10, min: 2, max: 48, opacity: 1, flow: 0.3, spacing: 0.12, pSize: 0.35, pFlow: 0.9, grain: ['paper', 0.8], tilt: true, angle: 'random' },
+      { id: 'pencil-fine', kind: 'paint', dab: 'pencil', size: 4, min: 1, max: 16, opacity: 1, flow: 0.45, spacing: 0.15, pSize: 0.2, pFlow: 0.85, grain: ['paper', 0.55], tilt: true, angle: 'random' },
+      { id: 'pencil-soft', kind: 'paint', dab: 'pencil', size: 18, min: 4, max: 64, opacity: 1, flow: 0.36, spacing: 0.1, pSize: 0.4, pFlow: 0.8, grain: ['rough', 0.7], tilt: true, angle: 'random' },
+      { id: 'pencil-sketch', kind: 'paint', dab: 'pencil', size: 6, min: 1, max: 24, opacity: 0.85, flow: 0.2, spacing: 0.12, pSize: 0.25, pFlow: 1, grain: ['paper', 0.65], tilt: true, angle: 'random' },
     ],
   },
   {
     id: 'marker', icon: 'marker',
     tools: [
-      { id: 'marker-fine', kind: 'paint', dab: 'hard', size: 8, min: 2, max: 32, opacity: 0.92, flow: 1, spacing: 0.06, pSize: 0.15, pFlow: 0, blend: 'multiply' },
-      { id: 'marker-brush', kind: 'paint', dab: 'hard', size: 20, min: 3, max: 72, opacity: 0.88, flow: 1, spacing: 0.05, pSize: 0.85, pFlow: 0, blend: 'multiply' },
-      { id: 'marker-chisel', kind: 'paint', dab: 'square', size: 28, min: 6, max: 96, opacity: 0.8, flow: 1, spacing: 0.04, pSize: 0.1, pFlow: 0, ratio: 0.28, angle: 'azimuth', blend: 'multiply' },
-      { id: 'marker-highlight', kind: 'paint', dab: 'square', size: 44, min: 10, max: 140, opacity: 0.42, flow: 1, spacing: 0.04, pSize: 0, pFlow: 0, ratio: 0.32, angle: 'fixed', angleValue: Math.PI / 2, blend: 'multiply' },
+      { id: 'marker-fine', kind: 'paint', dab: 'hard', size: 8, min: 2, max: 32, opacity: 0.92, flow: 1, spacing: 0.06, pSize: 0.15, pFlow: 0 },
+      { id: 'marker-brush', kind: 'paint', dab: 'hard', size: 20, min: 3, max: 72, opacity: 0.88, flow: 1, spacing: 0.05, pSize: 0.85, pFlow: 0 },
+      { id: 'marker-chisel', kind: 'paint', dab: 'square', size: 28, min: 6, max: 96, opacity: 0.8, flow: 1, spacing: 0.04, pSize: 0.1, pFlow: 0, ratio: 0.28, angle: 'azimuth' },
+      { id: 'marker-highlight', kind: 'paint', dab: 'square', size: 44, min: 10, max: 140, opacity: 0.42, flow: 1, spacing: 0.04, pSize: 0, pFlow: 0, ratio: 0.32, angle: 'fixed', angleValue: Math.PI / 2 },
     ],
   },
   {
@@ -39,9 +39,9 @@ export const GROUPS = [
   {
     id: 'water', icon: 'water',
     tools: [
-      { id: 'water-wash', kind: 'paint', dab: 'soft20', size: 70, min: 10, max: 260, opacity: 0.7, flow: 0.16, spacing: 0.08, pSize: 0.5, pFlow: 0.5, blend: 'multiply', grain: ['paper', 0.2], edge: 0.55 },
-      { id: 'water-wet', kind: 'paint', dab: 'wet', size: 56, min: 10, max: 260, opacity: 0.78, flow: 0.24, spacing: 0.08, pSize: 0.5, pFlow: 0.4, jSize: 0.2, angle: 'random', blend: 'multiply', grain: ['rough', 0.25], edge: 0.9, bleed: 0.55 },
-      { id: 'water-dry', kind: 'paint', dab: 'wet', size: 34, min: 6, max: 160, opacity: 0.85, flow: 0.4, spacing: 0.06, pSize: 0.6, pFlow: 0.5, angle: 'random', blend: 'multiply', grain: ['rough', 0.75], edge: 0.3 },
+      { id: 'water-wash', kind: 'paint', dab: 'soft20', size: 70, min: 10, max: 260, opacity: 0.7, flow: 0.16, spacing: 0.08, pSize: 0.5, pFlow: 0.5, grain: ['paper', 0.2], edge: 0.55 },
+      { id: 'water-wet', kind: 'paint', dab: 'wet', size: 56, min: 10, max: 260, opacity: 0.78, flow: 0.24, spacing: 0.08, pSize: 0.5, pFlow: 0.4, jSize: 0.2, angle: 'random', grain: ['rough', 0.25], edge: 0.9, bleed: 0.55 },
+      { id: 'water-dry', kind: 'paint', dab: 'wet', size: 34, min: 6, max: 160, opacity: 0.85, flow: 0.4, spacing: 0.06, pSize: 0.6, pFlow: 0.5, angle: 'random', grain: ['rough', 0.75], edge: 0.3 },
     ],
   },
   {
@@ -149,7 +149,9 @@ const STAMP_DEFS = {
   soft85: [() => soft(0.85)],
   pencil: [1, 2, 3].map((s) => () => {
     const n = tileNoise(S, 40, 2, s * 7);
-    return (x, y, r, i) => edge(r, 0.3) * Math.pow(clamp((n[i] - 0.22) * 2, 0, 1), 0.8);
+    // Texture légère dans la pointe : le grain (fixe sur la feuille) fait le reste,
+    // ainsi repasser au même endroit retombe sur le même grain.
+    return (x, y, r, i) => edge(r, 0.3) * (0.72 + 0.28 * n[i]);
   }),
   chalk: [1, 2, 3].map((s) => () => {
     const lo = tileNoise(S, 6, 2, s * 13), hi = tileNoise(S, 48, 2, s * 17);

@@ -27,6 +27,9 @@ Pensée pour l'Apple Pencil : pression, inclinaison (ombrage au crayon), survol.
   pinceau mouillé, gouttes d'aquarelle, souffle de l'aérographe, clochettes des
   paillettes, frottement de la gomme, peinture versée au remplissage). Volume et
   coupure dans Réglages ou bouton haut-parleur ; respecte le mode silencieux.
+- **Même couleur sans surépaisseur** : repasser une couleur déjà posée (après avoir
+  levé le stylo) ne la fonce pas, comme si c'était un seul trait ; une autre
+  couleur recouvre. Vaut pour tous les outils et pour le remplissage à opacité partielle.
 - **Rester dans les traits** : un trait commencé dans une zone n'en sort pas.
 - **Coloriages** générés à l'infini, 10 catégories (mandalas, fleurs, papillons,
   océan, paysages, kaléidoscopes, vitraux, géométrie, motifs, abstrait) : chaque

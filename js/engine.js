@@ -23,6 +23,46 @@ function angleLerp(a, b, t) {
   return a + d * t;
 }
 
+// Composition « même couleur » : repasser une couleur déjà posée ne la fonce
+// pas (on garde la plus forte des deux couvertures, comme un seul trait) ;
+// une autre couleur recouvre normalement. B : pixels d'avant le trait (tout le
+// document, largeur W) ; src : pixels du trait (w × h) placés en (x, y).
+export function composeSame(B, W, x, y, src, w, h, opacity, out) {
+  const o = out.data;
+  for (let j = 0; j < h; j++) {
+    let bi = ((y + j) * W + x) * 4, si = j * w * 4;
+    for (let i = 0; i < w; i++, bi += 4, si += 4) {
+      const ba = B[bi + 3], sa = src[si + 3] * opacity;
+      if (sa < 0.5) {
+        o[si] = B[bi]; o[si + 1] = B[bi + 1]; o[si + 2] = B[bi + 2]; o[si + 3] = ba;
+        continue;
+      }
+      const dr = src[si], dg = src[si + 1], db = src[si + 2];
+      if (!ba) {
+        o[si] = dr; o[si + 1] = dg; o[si + 2] = db; o[si + 3] = sa;
+        continue;
+      }
+      const br = B[bi], bg = B[bi + 1], bb = B[bi + 2];
+      const S1 = sa / 255, A = ba / 255, under = A * (1 - S1);
+      let ao = S1 + under, pr = dr * S1 + br * under, pg = dg * S1 + bg * under, pb = db * S1 + bb * under;
+      // Couleurs proches : on tend vers le maximum des deux couvertures.
+      // Tolérance plus large sur les pixels très transparents (couleur imprécise).
+      const diff = Math.abs(br - dr) + Math.abs(bg - dg) + Math.abs(bb - db);
+      const tol = 12 + (ba < 48 ? 48 - ba : 0);
+      if (diff < tol + 40) {
+        const wgt = diff <= tol ? 1 : 1 - (diff - tol) / 40;
+        const am = S1 > A ? S1 : A, k = am / (S1 + A);
+        pr += ((dr * S1 + br * A) * k - pr) * wgt;
+        pg += ((dg * S1 + bg * A) * k - pg) * wgt;
+        pb += ((db * S1 + bb * A) * k - pb) * wgt;
+        ao += (am - ao) * wgt;
+      }
+      o[si] = pr / ao; o[si + 1] = pg / ao; o[si + 2] = pb / ao; o[si + 3] = ao * 255;
+    }
+  }
+  return out;
+}
+
 export class Engine {
   constructor() {
     this.accum = makeCanvas(1, 1);
@@ -39,8 +79,8 @@ export class Engine {
     this.H = doc.h;
     this.accum.width = this.display.width = doc.w;
     this.accum.height = this.display.height = doc.h;
-    this.actx = this.accum.getContext('2d');
-    this.dctx = this.display.getContext('2d');
+    this.actx = this.accum.getContext('2d', { willReadFrequently: true });
+    this.dctx = this.display.getContext('2d', { willReadFrequently: true });
     this.pctx = doc.paint.getContext('2d');
     this.patterns = {};
   }
@@ -405,6 +445,12 @@ export class Engine {
 
   composite([x, y, w, h], src) {
     const s = this.s, T = s.tool, p = this.pctx;
+    // doc.bdata : copie en mémoire de l'état d'avant le trait (absente pour les aperçus).
+    if (!T.erase && this.doc.bdata) {
+      const data = (src === this.accum ? this.actx : this.dctx).getImageData(x, y, w, h).data;
+      p.putImageData(composeSame(this.doc.bdata.data, this.W, x, y, data, w, h, s.opacity, new ImageData(w, h)), x, y);
+      return;
+    }
     p.save();
     clipRect(p, x, y, w, h);
     p.clearRect(x, y, w, h);

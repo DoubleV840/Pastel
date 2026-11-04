@@ -3,7 +3,7 @@
 
 import { S, saveSettings, addRecent } from './settings.js';
 import { GROUPS, TOOLS, PAPERS, LINE_COLORS, paperById, lineColorById, paperTile } from './brushes.js';
-import { Engine } from './engine.js';
+import { Engine, composeSame } from './engine.js';
 import { computeRegions, labelAt, regionMask, floodMask, releaseRegions } from './regions.js';
 import { renderFill, fillSwatch } from './fill.js';
 import { ColorPanel, colorButtonUpdate } from './colorpicker.js';
@@ -609,6 +609,14 @@ function drawFillRegion(m, src, alpha) {
   pctx.restore();
 }
 
+// Version finale d'un remplissage : avec une opacité partielle, même règle que
+// pour les traits (la même couleur ne fonce pas, une autre recouvre).
+function drawFillFinal(m, c, alpha) {
+  if (alpha >= 0.999) return drawFillRegion(m, c, alpha);
+  const src = c.getContext('2d').getImageData(0, 0, m.w, m.h).data;
+  pctx.putImageData(composeSame(doc.bdata.data, doc.w, m.x, m.y, src, m.w, m.h, alpha, new ImageData(m.w, m.h)), m.x, m.y);
+}
+
 // Dégradé tiré au doigt : aperçu direct à chaque image.
 function renderFillPreview() {
   const c = fillCanvas(fillState);
@@ -621,7 +629,9 @@ function fillEnd() {
   stopLoop();
   const fs = fillState, { m } = fs;
   if (fs.dragging) {
-    if (fs.dirty) renderFillPreview();
+    const c = fillCanvas(fs);
+    drawFillFinal(m, c, fs.alpha);
+    freeCanvas(c);
     commit([m.x, m.y, m.w, m.h]);
     playFill(250);
   } else {
@@ -629,7 +639,7 @@ function fillEnd() {
     ripple(lastClient, S.color);
     if (animOn()) startFillAnim(m, c, fs.start, fs.alpha);
     else {
-      drawFillRegion(m, c, fs.alpha);
+      drawFillFinal(m, c, fs.alpha);
       freeCanvas(c);
       commit([m.x, m.y, m.w, m.h]);
     }
@@ -757,7 +767,7 @@ function finishFillAnim() {
   const a = fillAnim;
   if (!a) return;
   fillAnim = null;
-  drawFillRegion(a.m, a.c, a.alpha);
+  drawFillFinal(a.m, a.c, a.alpha);
   commit([a.m.x, a.m.y, a.m.w, a.m.h]);
   for (const c of [a.c, a.tmp, a.reveal]) freeCanvas(c);
   if (!mode) stopLoop();
@@ -829,11 +839,25 @@ function restoreRect([x, y, w, h]) {
   pctx.restore();
 }
 
+// doc.bdata : copie en mémoire de l'état validé (= backup), lue par la
+// composition « même couleur » sans relire le canvas à chaque image.
+function mirrorGet([x, y, w, h]) {
+  const img = new ImageData(w, h), B = doc.bdata.data, W = doc.w;
+  for (let j = 0; j < h; j++) img.data.set(B.subarray(((y + j) * W + x) * 4, ((y + j) * W + x + w) * 4), j * w * 4);
+  return img;
+}
+
+function mirrorPut(img, x, y) {
+  const B = doc.bdata.data, W = doc.w, w = img.width;
+  for (let j = 0; j < img.height; j++) B.set(img.data.subarray(j * w * 4, (j + 1) * w * 4), ((y + j) * W + x) * 4);
+}
+
 function commit(R) {
   if (!R) return;
   const [x, y] = R;
-  history.push({ x, y, data: bctx.getImageData(...R) });
+  history.push({ x, y, data: mirrorGet(R) });
   syncBackup(R);
+  mirrorPut(pctx.getImageData(...R), x, y);
   markDirty();
 }
 
@@ -857,13 +881,14 @@ function step(from, to) {
   const r = from.pop();
   if (!r) return;
   const { x, y, data } = r, R = [x, y, data.width, data.height];
-  const cur = pctx.getImageData(...R);
+  const cur = mirrorGet(R);
   to.push({ x, y, data: cur });
   if (animOn()) fadeOverlay(cur, x, y);
   bounce($(from === history.undo ? '#ed-undo' : '#ed-redo'), 'nudge');
   playSwish(from === history.undo ? -1 : 1);
   pctx.putImageData(data, x, y);
   syncBackup(R);
+  mirrorPut(data, x, y);
   refreshUndo();
   markDirty();
 }
@@ -874,9 +899,10 @@ function clearPaint() {
   if (!confirm(t('confirm.clear'))) return;
   finishFillAnim();
   const R = [0, 0, doc.w, doc.h];
-  history.push({ x: 0, y: 0, data: bctx.getImageData(...R) });
+  history.push({ x: 0, y: 0, data: mirrorGet(R) });
   pctx.clearRect(...R);
   syncBackup(R);
+  doc.bdata.data.fill(0);
   markDirty();
 }
 
@@ -1083,6 +1109,7 @@ export async function openArt(rec, { lines } = {}) {
     bctx = backup.getContext('2d');
     if (rec.paint) pctx.drawImage(await loadImage(rec.paint), 0, 0, w, h);
     bctx.drawImage(cvPaint, 0, 0);
+    doc.bdata = bctx.getImageData(0, 0, w, h);
     const lctx = cvLines.getContext('2d', { willReadFrequently: true });
     cvLines.hidden = !doc.hasLines;
     if (doc.hasLines) {
