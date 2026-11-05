@@ -56,7 +56,7 @@ export const GROUPS = [
   {
     id: 'air', icon: 'air',
     tools: [
-      { id: 'air-soft', kind: 'paint', dab: 'soft0', size: 90, min: 10, max: 420, opacity: 1, flow: 0.06, spacing: 0.06, pSize: 0.2, pFlow: 1, buildup: true },
+      { id: 'air-soft', kind: 'paint', dab: 'air', size: 300, min: 10, max: 1000, opacity: 1, flow: 0.2, spacing: 0.12, pSize: 0.7, pFlow: 0.8, angle: 'random', buildup: true, hold: 0.3 },
       { id: 'air-fine', kind: 'paint', dab: 'soft20', size: 22, min: 3, max: 90, opacity: 1, flow: 0.12, spacing: 0.08, pSize: 0.3, pFlow: 1, buildup: true },
       { id: 'air-spray', kind: 'paint', dab: 'spray', size: 70, min: 12, max: 320, opacity: 1, flow: 0.85, spacing: 0.12, pSize: 0.2, pFlow: 1, density: 1, buildup: true },
       { id: 'air-splatter', kind: 'paint', dab: 'splatter', size: 90, min: 20, max: 360, opacity: 1, flow: 1, spacing: 0.5, pSize: 0.3, pFlow: 0 },
@@ -147,6 +147,11 @@ const STAMP_DEFS = {
   soft50: [() => soft(0.5)],
   soft70: [() => soft(0.7)],
   soft85: [() => soft(0.85)],
+  // Grain très fin : casse les arcs réguliers que l'arrondi 8 bits dessine dans un grand trait doux.
+  air: [1, 2, 3].map((s) => () => {
+    const n = tileNoise(S, 64, 1, s * 37), f = soft(0.2);
+    return (x, y, r, i) => f(x, y, r) * (0.88 + 0.24 * n[i]);
+  }),
   pencil: [1, 2, 3].map((s) => () => {
     const n = tileNoise(S, 40, 2, s * 7);
     // Texture légère dans la pointe : le grain (fixe sur la feuille) fait le reste,

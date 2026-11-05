@@ -173,7 +173,7 @@ export class Engine {
   // Trait continu tant que le stylet reste immobile (aérographe, bombe).
   hold() {
     const s = this.s;
-    if (s && s.sm && s.tool.buildup) this.dab(s.sm);
+    if (s && s.sm && s.tool.buildup) this.dab(s.sm, s.tool.hold);
   }
 
   curve(p0, c, p1) {
@@ -222,10 +222,10 @@ export class Engine {
 
   /* ---------- Empreintes ---------- */
 
-  dab(q) {
+  dab(q, k = 1) {
     const s = this.s, T = s.tool, R = Math.random, p = q.p;
     let size = s.size * (1 - T.pSize + T.pSize * p);
-    let alpha = (T.flow ?? 1) * (1 - T.pFlow + T.pFlow * p);
+    let alpha = k * (T.flow ?? 1) * (1 - T.pFlow + T.pFlow * p);
     let ratio = T.ratio || 1, angle = 0, tilted = false;
     // Crayon incliné : la mine s'élargit et ombre plus légèrement.
     if (T.tilt && q.pen) {

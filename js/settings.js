@@ -26,7 +26,14 @@ const DEFAULTS = {
 
 function load() {
   try {
-    return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(KEY) || '{}') };
+    const s = { ...DEFAULTS, ...JSON.parse(localStorage.getItem(KEY) || '{}') };
+    // Aérographe élargi (90 → 300 par défaut) : une taille déjà enregistrée suit la nouvelle échelle.
+    if (!s.airWide) {
+      const a = s.tools['air-soft'];
+      if (a?.size) a.size = Math.min(1000, Math.round(a.size * 300 / 90));
+      s.airWide = true;
+    }
+    return s;
   } catch {
     return { ...DEFAULTS };
   }
